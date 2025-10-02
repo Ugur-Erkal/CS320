@@ -29,8 +29,8 @@ Explain what the project is, its purpose, and any background information.
 
 Clone the repo:
 ```bash
-git clone https://github.com/username/repo-name.git
-cd repo-name
+git clone https://github.com/Ugur-Erkal/CS320
+cd CS320
 ```
 - [java oracle standard](https://www.oracle.com/docs/tech/java/codeconventions.pdf)
 
