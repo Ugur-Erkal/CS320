@@ -36,6 +36,33 @@ cd CS320
 
 - [commit message standard](https://www.conventionalcommits.org/en/v1.0.0/)
 
+
+Signed commits:
+```bash
+Step 1. Generate SSH key
+
+ssh-keygen -t ed25519 -C "your_email@example.com"
+// no need to name, just default save 
+
+
+Step 2. Add public key to GitHub
+
+Show the key:
+cat ~/.ssh/id_ed25519.pub 
+// use Get-Content $HOME\.ssh\id_ed25519.pub on windows, or just open the file.
+Copy it → go to GitHub → Settings → SSH and GPG keys → New SSH key
+Choose "Signing key" type.
+
+Step 3. Tell Git to use SSH for signing
+
+git config --global gpg.format ssh
+git config --global user.signingkey ~/.ssh/id_ed25519.pub
+git config --global commit.gpgsign true
+// can be local too if desired.
+
+Step 4. Make a signed commit to test
+git commit -S -m "Your signed commit"
+```
 ### testing and other extensions in use:
 
 - Junit 5   
