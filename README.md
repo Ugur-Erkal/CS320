@@ -38,4 +38,11 @@ cd CS320
 
 ### testing and other extensions in use:
 
-- TBD
+- Junit 5   
+    - unit and integration tests, will be added as CI later
+
+- JaCoCo
+    - coverage report, also to be added to CI later
+
+- linter TBD
+    - spotless, google java formater maybe
