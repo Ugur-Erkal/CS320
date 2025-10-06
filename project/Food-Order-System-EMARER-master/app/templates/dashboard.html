@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Restaurant Dashboard</h2>
+<form action="/logout" method="get" style="float: right;">
+  <button type="submit">Log out</button>
+</form>
+
+<a href="/statistics">
+  <button style="margin-bottom: 10px;">View Sales Statistics</button>
+</a>
+<a href="/add-menu-item">
+  <button style="margin-bottom: 10px;">Add Menu Item</button>
+</a>
+<a href="/manage-menu">
+  <button style="margin-bottom: 20px;">Manage Menu</button>
+</a>
+<a href="/view-ratings">
+  <button style="margin-bottom: 10px;">View Ratings</button>
+</a>
+<a href="/manage-keywords">
+  <button style="margin-bottom: 10px;">Manage Keywords</button>
+</a>
+<a href="/manage-discounts">
+  <button style="margin-bottom: 10px;">Manage Discounts</button>
+</a>
+<h3>Incoming Orders</h3>
+
+<form method="get" action="/dashboard">
+  <label for="restaurant_id">Select Restaurant:</label>
+  <select name="restaurant_id" onchange="this.form.submit()">
+    {% for r in restaurants %}
+      <option value="{{ r.RestaurantID }}" {% if r.RestaurantID == selected_restaurant_id %}selected{% endif %}>
+        {{ r.RestaurantName }}
+      </option>
+    {% endfor %}
+  </select>
+</form>
+
+<table border="1" cellpadding="6">
+  <tr>
+    <th>Customer</th>
+    <th>Item</th>
+    <th>Quantity</th>
+    <th>Status</th>
+    <th>Total</th>
+    <th>Action</th>
+  </tr>
+  {% for order in orders %}
+  <tr>
+    <td>{{ order.Username }}</td>
+    <td>{{ order.ItemName }}</td>
+    <td>{{ order.Quantity }}</td>
+    <td>{{ order.Status }}</td>
+    <td>{{ "%.2f" | format(order.TotalPrice) }} ₺</td>
+    <td>
+      {% if order.Status|lower == 'sent' %}
+      <form method="POST" action="/accept-order/{{ order.CartID }}">
+        <button type="submit">Accept</button>
+      </form>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+{% endblock %}

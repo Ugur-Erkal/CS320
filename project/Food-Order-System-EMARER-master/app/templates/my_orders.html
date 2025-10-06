@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}My Orders{% endblock %}
+
+{% block content %}
+    <a href="/search"><button style="margin-top: 20px;">← Back to Search</button></a>
+
+<h2>Accepted Orders</h2>
+
+{% if orders %}
+    <ul>
+    {% for order in orders %}
+        <li>
+            <strong>{{ order.RestaurantName }}</strong> |
+            Status: {{ order.Status }} |
+            {% if order.AlreadyRated %}
+                Rated
+            {% elif order.HoursSinceAccepted <= 24 %}
+                <a href="/rate-order/{{ order.CartID }}">Rate</a>
+            {% else %}
+                Rating expired
+            {% endif %}
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>You have no accepted orders.</p>
+{% endif %}
+{% endblock %}

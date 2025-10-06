@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Manage Menu</h2>
+
+<form method="get" action="/manage-menu">
+  <label for="restaurant_id">Select Restaurant:</label>
+  <select name="restaurant_id" id="restaurant_id" onchange="this.form.submit()">
+    {% for r in restaurants %}
+      <option value="{{ r.RestaurantID }}" {% if r.RestaurantID == selected_restaurant_id %}selected{% endif %}>{{ r.RestaurantName }}</option>
+    {% endfor %}
+  </select>
+</form>
+
+<table border="1" cellpadding="6" style="margin-top: 20px;">
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <th>Price (₺)</th>
+    <th>Action</th>
+  </tr>
+  {% for item in menu_items %}
+  <tr>
+    <td>{{ item.Name }}</td>
+    <td>{{ item.Description }}</td>
+    <td>{{ item.Price }}</td>
+    <td>
+      <form method="POST" onsubmit="return confirm('Are you sure you want to delete this item?');">
+        <input type="hidden" name="delete_item_id" value="{{ item.MenuItemID }}">
+        <button type="submit">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<a href="/dashboard">
+  <button style="margin-top: 20px;">← Back to Dashboard</button>
+</a>
+{% endblock %}

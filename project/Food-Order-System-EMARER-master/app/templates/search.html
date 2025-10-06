@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Search{% endblock %}
+
+{% block content %}
+<a href="/cart"><button style="float:right;">🛒 Go to Cart</button></a>
+<a href="/my-orders"><button style="float:right;">📦 My Orders</button></a>
+<a href="/logout"><button style="float:right; margin-right: 100px;">🚪 Log out</button></a>
+<h2>Search for food or restaurants</h2>
+
+
+<form method="get" action="/search">
+    <input type="text" name="q" placeholder="Type something..." value="{{ query }}">
+    <button type="submit">Search</button>
+</form>
+
+{% if results %}
+    <ul>
+    {% for r in results %}
+        <li>
+            {% if r.Image %}
+                <img src="{{ r.Image }}" alt="{{ r.MenuItem }}" width="120" style="margin: 5px 0;"><br>
+            {% endif %}
+            <strong>{{ r.MenuItem }}</strong> — {{ r.Description }}<br>
+            Price:
+                {% if r.DiscountedPrice %}
+                    <del>{{ r.Price }} ₺</del> → <strong>{{ r.DiscountedPrice }} ₺</strong><br>
+                {% else %}
+                    {{ r.Price }} ₺<br>
+                {% endif %}
+            <em>{{ r.RestaurantName }}</em>
+            | {{ r.CuisineType }} | {{ r.Address }} | {{ r.City }}<br>
+
+            {% if r.RatingCount >= 10 %}
+                Average Rating: {{ "%.2f"|format(r.AvgRating) }} ★
+            {% else %}
+                <span style="color: gray;">New</span>
+            {% endif %}
+
+            <form method="post" action="/add-to-cart" style="display:inline;">
+                <input type="hidden" name="menu_item_id" value="{{ r.MenuItemID }}">
+                <input type="number" name="quantity" value="1" min="1" style="width: 50px;" required>
+                <button type="submit">Add to Cart</button>
+            </form>
+        </li>
+    {% endfor %}
+    </ul>
+{% elif query %}
+    <p>No results found for "{{ query }}"</p>
+{% endif %}
+
+{% endblock %}

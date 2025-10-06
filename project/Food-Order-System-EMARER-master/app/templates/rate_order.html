@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Rate {{ order.RestaurantName }}{% endblock %}
+
+{% block content %}
+    <a href="/my-orders"><button style="margin-top: 20px;">← Back to My Orders</button></a>
+
+<h2>Rate {{ order.RestaurantName }}</h2>
+
+<form method="POST">
+    <label for="rating">Rating (1 to 5):</label><br>
+    <input type="number" name="rating" min="1" max="5" required><br><br>
+
+    <label for="comment">Comment (optional):</label><br>
+    <textarea name="comment" rows="4" cols="40"></textarea><br><br>
+
+    <button type="submit">Submit</button>
+</form>
+{% endblock %}

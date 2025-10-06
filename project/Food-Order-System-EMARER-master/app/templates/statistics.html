@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Sales Statistics</h2>
+
+<a href="/dashboard">
+  <button style="margin-bottom: 20px;">← Back to Dashboard</button>
+</a>
+
+<form method="get" action="/statistics">
+  <label for="restaurant_id">Select Restaurant:</label>
+  <select name="restaurant_id" id="restaurant_id" onchange="this.form.submit()">
+    {% for r in restaurants %}
+      <option value="{{ r.RestaurantID }}" {% if r.RestaurantID == selected_restaurant_id %}selected{% endif %}>{{ r.RestaurantName }}</option>
+    {% endfor %}
+  </select>
+</form>
+
+<h3>1. Total Revenue and Orders</h3>
+<ul>
+  <li><strong>Total Revenue:</strong> {{ total_stats.TotalRevenue or 0 }} ₺</li>
+  <li><strong>Total Orders:</strong> {{ total_stats.OrderCount or 0 }}</li>
+</ul>
+
+<h3>2. Revenue Per Menu Item</h3>
+<table border="1" cellpadding="6">
+  <tr>
+    <th>Menu Item</th>
+    <th>Total Quantity Sold</th>
+    <th>Total Revenue</th>
+  </tr>
+  {% for item in item_stats %}
+  <tr>
+    <td>{{ item.MenuItem }}</td>
+    <td>{{ item.TotalQuantity }}</td>
+    <td>{{ item.Revenue }} ₺</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h3>3. Top Customer (By Number of Orders)</h3>
+{% if top_customer %}
+  <p><strong>{{ top_customer.Username }}</strong> - {{ top_customer.OrderCount }} orders</p>
+{% else %}
+  <p>No orders found.</p>
+{% endif %}
+
+<h3>4. Highest Value Cart</h3>
+{% if top_cart %}
+  <p><strong>User:</strong> {{ top_cart.Username }}</p>
+  <p><strong>Cart ID:</strong> {{ top_cart.CartID }}</p>
+  <p><strong>Total Value:</strong> {{ top_cart.TotalValue }} ₺</p>
+{% else %}
+  <p>No high-value carts found.</p>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<h2>Register</h2>
+<form method="POST">
+    <input type="text" name="username" placeholder="Username" required><br>
+    <input type="password" name="password" placeholder="Password" required><br>
+
+    <label for="usertype">Registering as:</label>
+    <select name="usertype" required onchange="toggleFields(this.value)">
+        <option value="Customer">Customer</option>
+        <option value="Restaurant">Restaurant</option>
+    </select><br>
+
+    <div id="customerFields" style="display: none;">
+        <input type="text" name="address" placeholder="Address"><br>
+        <input type="text" name="phone" placeholder="Phone Number"><br>
+        <input type="text" name="city" placeholder="City"><br>
+    </div>
+
+    <div id="restaurantFields" style="display: none;">
+        <input type="text" name="restaurant_name" placeholder="Restaurant Name"><br>
+        <input type="text" name="restaurant_address" placeholder="Restaurant Address"><br>
+        <input type="text" name="restaurant_city" placeholder="Restaurant City"><br>
+        <input type="text" name="cuisine_type" placeholder="Cuisine Type"><br>
+    </div>
+
+    <button type="submit">Register</button>
+</form>
+
+<script>
+function toggleFields(value) {
+    const restaurantFields = document.getElementById("restaurantFields");
+    const customerFields = document.getElementById("customerFields");
+
+    const allInputs = document.querySelectorAll('#customerFields input, #restaurantFields input');
+    allInputs.forEach(input => input.removeAttribute('required'));
+
+    if (value === "Customer") {
+        customerFields.style.display = "block";
+        restaurantFields.style.display = "none";
+
+        document.querySelector('input[name="address"]').setAttribute('required', true);
+        document.querySelector('input[name="phone"]').setAttribute('required', true);
+        document.querySelector('input[name="city"]').setAttribute('required', true);
+
+    } else if (value === "Restaurant") {
+        customerFields.style.display = "none";
+        restaurantFields.style.display = "block";
+
+        document.querySelector('input[name="restaurant_name"]').setAttribute('required', true);
+        document.querySelector('input[name="restaurant_address"]').setAttribute('required', true);
+        document.querySelector('input[name="restaurant_city"]').setAttribute('required', true);
+        document.querySelector('input[name="cuisine_type"]').setAttribute('required', true);
+    } else {
+        customerFields.style.display = "none";
+        restaurantFields.style.display = "none";
+    }
+}
+
+window.onload = function() {
+    const select = document.querySelector('select[name="usertype"]');
+    toggleFields(select.value);
+}
+</script>
+
+<p>Already have an account? <a href="/login">Log In</a></p>
+{% endblock %}

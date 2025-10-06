@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Restaurant Ratings</h2>
+<form method="get" action="">
+  <label for="restaurant_id">Select Restaurant:</label>
+  <select name="restaurant_id" onchange="this.form.submit()">
+    {% for r in restaurants %}
+      <option value="{{ r.RestaurantID }}" {% if r.RestaurantID == selected_restaurant_id %}selected{% endif %}>
+        {{ r.RestaurantName }}
+      </option>
+    {% endfor %}
+  </select>
+</form>
+
+{% if ratings %}
+    <ul>
+    {% for r in ratings %}
+        <li>
+            <strong>{{ r.Username }}</strong> - Rated: {{ r.Rating }}<br>
+            {% if r.Comment %}
+                "{{ r.Comment }}"
+            {% else %}
+                <em>No comment.</em>
+            {% endif %}
+            <br><small>{{ r.RatingDate }}</small>
+            <hr>
+        </li>
+    {% endfor %}
+    </ul>
+
+    {% if avg_rating %}
+        <p><strong>Average Rating:</strong> {{ avg_rating }} ⭐</p>
+    {% else %}
+        <p><em>You need at least 10 ratings to calculate an average.</em></p>
+    {% endif %}
+{% else %}
+    <p>No ratings yet.</p>
+{% endif %}
+
+<a href="/dashboard">
+  <button style="margin-top: 20px;">← Back to Dashboard</button>
+</a>
+{% endblock %}
