@@ -1,0 +1,152 @@
+CREATE DATABASE foodordersystem;
+USE foodordersystem;
+
+CREATE TABLE User (
+    UserID INT AUTO_INCREMENT PRIMARY KEY,
+    Username VARCHAR(50) NOT NULL UNIQUE,
+    Password VARCHAR(100) NOT NULL,
+    UserType ENUM('Customer', 'Manager') NOT NULL
+);
+
+CREATE TABLE UserPhoneNumber (
+    PhoneID INT AUTO_INCREMENT PRIMARY KEY,
+    PhoneNumber VARCHAR(20) NOT NULL UNIQUE
+);
+
+CREATE TABLE HasPhoneNum (
+    UserID INT,
+    PhoneID INT,
+    PRIMARY KEY (UserID, PhoneID),
+    FOREIGN KEY (UserID) REFERENCES User(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (PhoneID) REFERENCES UserPhoneNumber(PhoneID) ON DELETE CASCADE
+);
+
+CREATE TABLE UserAddress (
+    AddressID INT AUTO_INCREMENT PRIMARY KEY,
+    Address TEXT NOT NULL,
+    City VARCHAR(100)
+);
+
+CREATE TABLE Lives (
+    UserID INT,
+    AddressID INT,
+    PRIMARY KEY (UserID, AddressID),
+    FOREIGN KEY (UserID) REFERENCES User(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (AddressID) REFERENCES UserAddress(AddressID) ON DELETE RESTRICT
+);
+
+CREATE TABLE Cart (
+    CartID INT AUTO_INCREMENT PRIMARY KEY,
+    Status ENUM('preparing', 'sent', 'accepted') NOT NULL,
+    AcceptedAt DATETIME DEFAULT NULL
+);
+
+CREATE TABLE Ratings (
+    RatingID INT AUTO_INCREMENT PRIMARY KEY,
+    Rating INT NOT NULL CHECK (Rating BETWEEN 1 AND 5),
+    RatingDate DATETIME NOT NULL,
+    Comment TEXT,
+    CartID INT UNIQUE,
+    FOREIGN KEY (CartID) REFERENCES Cart(CartID) ON DELETE CASCADE
+);
+
+CREATE TABLE WrittenBy (
+    RatingID INT,
+    UserID INT,
+    PRIMARY KEY (RatingID, UserID),
+    FOREIGN KEY (RatingID) REFERENCES Ratings(RatingID) ON DELETE CASCADE,
+    FOREIGN KEY (UserID) REFERENCES User(UserID) ON DELETE CASCADE
+);
+
+CREATE TABLE Restaurant (
+    RestaurantID INT AUTO_INCREMENT PRIMARY KEY,
+    RestaurantName VARCHAR(100) NOT NULL,
+    Address TEXT NOT NULL,
+    City VARCHAR(50) NOT NULL,
+    CuisineType VARCHAR(50)
+);
+
+CREATE TABLE ForRestaurant (
+    RatingID INT,
+    RestaurantID INT,
+    PRIMARY KEY (RatingID, RestaurantID),
+    FOREIGN KEY (RatingID) REFERENCES Ratings(RatingID) ON DELETE CASCADE,
+    FOREIGN KEY (RestaurantID) REFERENCES Restaurant(RestaurantID) ON DELETE CASCADE
+);
+
+CREATE TABLE Manages (
+    UserID INT,
+    RestaurantID INT,
+    PRIMARY KEY (UserID, RestaurantID),
+    FOREIGN KEY (UserID) REFERENCES User(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (RestaurantID) REFERENCES Restaurant(RestaurantID) ON DELETE CASCADE
+);
+
+CREATE TABLE Keyword (
+    KeywordID INT AUTO_INCREMENT PRIMARY KEY,
+    Keyword VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE AssociatedWith (
+    RestaurantID INT,
+    KeywordID INT,
+    PRIMARY KEY (RestaurantID, KeywordID),
+    FOREIGN KEY (RestaurantID) REFERENCES Restaurant(RestaurantID) ON DELETE CASCADE,
+    FOREIGN KEY (KeywordID) REFERENCES Keyword(KeywordID) ON DELETE CASCADE
+);
+
+CREATE TABLE MenuItem (
+    MenuItemID INT AUTO_INCREMENT PRIMARY KEY,
+    Description TEXT,
+    Price DECIMAL(10,2) NOT NULL,
+    Name VARCHAR(100) NOT NULL,
+    Image VARCHAR(255)
+);
+
+CREATE TABLE Has (
+    RestaurantID INT,
+    MenuItemID INT,
+    PRIMARY KEY (RestaurantID, MenuItemID),
+    FOREIGN KEY (RestaurantID) REFERENCES Restaurant(RestaurantID) ON DELETE CASCADE,
+    FOREIGN KEY (MenuItemID) REFERENCES MenuItem(MenuItemID) ON DELETE CASCADE
+);
+
+CREATE TABLE Discount (
+    DiscountID INT AUTO_INCREMENT PRIMARY KEY,
+    Discount DECIMAL(5,2) NOT NULL
+);
+
+CREATE TABLE Applied (
+    DiscountID INT,
+    MenuItemID INT,
+    StartDate DATETIME NOT NULL,
+    EndDate DATETIME NOT NULL,
+    PRIMARY KEY (DiscountID, MenuItemID, StartDate),
+    FOREIGN KEY (DiscountID) REFERENCES Discount(DiscountID) ON DELETE CASCADE,
+    FOREIGN KEY (MenuItemID) REFERENCES MenuItem(MenuItemID) ON DELETE CASCADE
+);
+
+CREATE TABLE Contains (
+    CartID INT,
+    MenuItemID INT,
+    Quantity INT NOT NULL CHECK (Quantity > 0),
+    PRIMARY KEY (CartID, MenuItemID),
+    FOREIGN KEY (CartID) REFERENCES Cart(CartID) ON DELETE CASCADE,
+    FOREIGN KEY (MenuItemID) REFERENCES MenuItem(MenuItemID) ON DELETE CASCADE
+);
+
+CREATE TABLE Holds (
+    CartID INT,
+    RestaurantID INT,
+    PRIMARY KEY (CartID, RestaurantID),
+    FOREIGN KEY (CartID) REFERENCES Cart(CartID) ON DELETE CASCADE,
+    FOREIGN KEY (RestaurantID) REFERENCES Restaurant(RestaurantID) ON DELETE CASCADE
+);
+
+CREATE TABLE Belongs (
+    CartID INT,
+    UserID INT,
+    PRIMARY KEY (CartID, UserID),
+    FOREIGN KEY (CartID) REFERENCES Cart(CartID) ON DELETE CASCADE,
+    FOREIGN KEY (UserID) REFERENCES User(UserID) ON DELETE CASCADE
+);
