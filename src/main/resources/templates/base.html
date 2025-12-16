@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:fragment="layout(content)">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Food Order System</title>
+
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; }
+    header {
+      padding:12px;
+      border-bottom:1px solid #ddd;
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    header a { text-decoration:none; }
+    main { padding:16px; }
+    .container { max-width:900px; margin:auto; }
+    .card { border:1px solid #ddd; border-radius:8px; padding:12px; margin:12px 0; }
+    .btn { padding:8px 12px; border:1px solid #333; border-radius:6px; background:#fff; cursor:pointer; }
+    .btn-primary { background:#333; color:#fff; }
+    input, select { padding:8px; border:1px solid #bbb; border-radius:6px; }
+  </style>
+</head>
+
+<body>
+<header>
+  <a href="/" class="btn">Home</a>
+  <a href="/search" class="btn">Search</a>
+  <a href="/cart" class="btn">Cart</a>
+  <a href="/my-orders" class="btn">My Orders</a>
+
+  <span style="flex:1"></span>
+
+  <a href="/login" class="btn btn-primary">Login</a>
+  <a href="/register" class="btn">Register</a>
+</header>
+
+<main>
+  <div class="container" th:insert="${content}"></div>
+</main>
+</body>
+</html>
