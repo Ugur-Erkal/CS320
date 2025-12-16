@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: layout(~{::body})}">
+<body>
+
+<h2>Search Restaurants & Menu Items</h2>
+
+<form class="card" method="get" action="/search">
+  <div style="display:flex; gap:12px; flex-wrap:wrap;">
+    <div>
+      <label>City</label><br/>
+      <input name="city" placeholder="e.g., Ankara" th:value="${city}">
+    </div>
+
+    <div>
+      <label>Keyword</label><br/>
+      <input name="q" placeholder="e.g., pizza" th:value="${q}">
+    </div>
+
+    <div>
+      <label>Sort</label><br/>
+      <select name="sort" th:value="${sort}">
+        <option value="">Default</option>
+        <option value="rating">Rating (high → low)</option>
+        <option value="price">Price (low → high)</option>
+      </select>
+    </div>
+  </div>
+
+  <div style="margin-top:12px;">
+    <button class="btn btn-primary" type="submit">Search</button>
+    <a class="btn" href="/search">Reset</a>
+  </div>
+</form>
+
+<div class="card">
+  <h3>Results</h3>
+  <p style="margin:0;">No results yet. (DB will be added later.)</p>
+</div>
+
+</body>
+</html>
