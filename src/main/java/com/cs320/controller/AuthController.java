@@ -67,6 +67,16 @@ public class AuthController {
                              @RequestParam String phoneNumber,
                              @RequestParam String city,
                              RedirectAttributes ra) {
+        if (username == null || username.isBlank() || 
+            password == null || password.isBlank() || 
+            userType == null || userType.isBlank() ||
+            address == null || address.isBlank() ||
+            phoneNumber == null || phoneNumber.isBlank() ||
+            city == null || city.isBlank()) {
+            ra.addFlashAttribute("msg", "All fields are required.");
+            return "redirect:/register";
+        }
+
         try {
             userService.register(username, password, userType, address, phoneNumber, city);
             ra.addFlashAttribute("msg", "Account created. Please login.");
