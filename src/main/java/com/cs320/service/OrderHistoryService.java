@@ -1,13 +1,14 @@
 package com.cs320.service;
 
-import com.cs320.controller.dto.OrderItemRow;
-import com.cs320.controller.dto.OrderSummary;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+
+import com.cs320.controller.dto.OrderItemRow;
+import com.cs320.controller.dto.OrderSummary;
 
 @Service
 public class OrderHistoryService {
@@ -19,13 +20,14 @@ public class OrderHistoryService {
     }
 
     public List<OrderSummary> getOrdersForUser(int userId) {
-         List<OrderSummary> orders = jdbc.query("""
-                SELECT c.CartID, c.Status, c.AcceptedAt,
+
+        List<OrderSummary> orders = jdbc.query("""
+                SELECT c.CartID, c.`Status`, c.AcceptedAt,
                        r.RestaurantID, r.RestaurantName
-                FROM Belongs b
-                JOIN Cart c ON c.CartID = b.CartID
-                JOIN Holds h ON h.CartID = c.CartID
-                JOIN Restaurant r ON r.RestaurantID = h.RestaurantID
+                FROM `Belongs` b
+                JOIN `Cart` c ON c.CartID = b.CartID
+                JOIN `Holds` h ON h.CartID = c.CartID
+                JOIN `Restaurant` r ON r.RestaurantID = h.RestaurantID
                 WHERE b.UserID = ?
                 ORDER BY c.CartID DESC
                 """,
@@ -40,11 +42,12 @@ public class OrderHistoryService {
                 ),
                 userId
         );
+
         for (OrderSummary o : orders) {
             List<OrderItemRow> items = jdbc.query("""
                     SELECT mi.MenuItemID, mi.Name, mi.Price, ct.Quantity
-                    FROM Contains ct
-                    JOIN MenuItem mi ON mi.MenuItemID = ct.MenuItemID
+                    FROM `Contains` ct
+                    JOIN `MenuItem` mi ON mi.MenuItemID = ct.MenuItemID
                     WHERE ct.CartID = ?
                     ORDER BY mi.Name ASC
                     """,

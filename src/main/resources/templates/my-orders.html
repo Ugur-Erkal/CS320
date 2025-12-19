@@ -12,15 +12,16 @@
 
 <div th:each="o : ${orders}" class="card">
   <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-    <strong th:text="${o.restaurantName()}">Restaurant Name</strong>
+    <strong th:text="${o.restaurantName}">Restaurant Name</strong>
     <span>•</span>
-    <span>Status: <b th:text="${o.status()}">sent</b></span>
-    <span th:if="${o.acceptedAt() != null}">
+
+    <span th:if="${o.acceptedAt != null}">
       • AcceptedAt:
-      <span th:text="${#dates.format(o.acceptedAt(), 'yyyy-MM-dd HH:mm')}">date</span>
+      <span th:text="${#dates.format(o.acceptedAt, 'yyyy-MM-dd HH:mm')}">date</span>
     </span>
+
     <span style="margin-left:auto;">
-      Total: <b th:text="${o.total()}">0</b>
+      Total: <b th:text="${o.total}">0</b>
     </span>
   </div>
 
@@ -35,19 +36,17 @@
       </tr>
       </thead>
       <tbody>
-      <tr th:each="it : ${o.items()}">
-        <td style="padding:6px;" th:text="${it.name()}">Pizza</td>
-        <td style="padding:6px; text-align:right;" th:text="${it.price()}">100</td>
-        <td style="padding:6px; text-align:right;" th:text="${it.quantity()}">2</td>
-        <td style="padding:6px; text-align:right;"
-            th:text="${it.price().multiply(T(java.math.BigDecimal).valueOf(it.quantity()))}">
-          200
-        </td>
+      <tr th:each="it : ${o.items}">
+        <td style="padding:6px;" th:text="${it.name}">Pizza</td>
+        <td style="padding:6px; text-align:right;" th:text="${it.price}">100</td>
+        <td style="padding:6px; text-align:right;" th:text="${it.quantity}">2</td>
+        <td style="padding:6px; text-align:right;" th:text="${it.lineTotal}">200</td>
       </tr>
       </tbody>
     </table>
   </div>
 </div>
+
 
 </body>
 </html>
