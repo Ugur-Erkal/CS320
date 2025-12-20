@@ -27,10 +27,14 @@
 
 <body>
 <header>
-  <a href="/" class="btn">Home</a>
-  <a href="/search" class="btn">Search</a>
-  <a href="/cart" class="btn">Cart</a>
-  <a href="/my-orders" class="btn">My Orders</a>
+  <a th:href="${session.userType != null and session.userType.toString().equalsIgnoreCase('Manager') ? '/dashboard' : '/'}"
+     class="btn">Home</a>
+
+  <span th:if="${session.userType != null and session.userType.toString().equalsIgnoreCase('Customer')}">
+    <a href="/search" class="btn">Search</a>
+    <a href="/cart" class="btn">Cart</a>
+    <a href="/my-orders" class="btn">My Orders</a>
+  </span>
 
   <span style="flex:1"></span>
 
@@ -45,8 +49,9 @@
   <a th:if="${session.username != null}" href="/logout" class="btn btn-primary">
     Logout
   </a>
-
 </header>
+
+
 
 <main>
   <div class="container" th:insert="${content}"></div>

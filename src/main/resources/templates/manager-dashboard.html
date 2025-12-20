@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: layout(~{::body})}">
+<body>
+
+<h2>Restaurant Dashboard</h2>
+
+<div th:if="${restaurants == null or #lists.isEmpty(restaurants)}" class="card">
+  <p>No restaurant is assigned to your manager account.</p>
+  <a class="btn" href="/logout">Logout</a>
+</div>
+
+<div th:if="${restaurants != null and !#lists.isEmpty(restaurants)}">
+
+  <div class="card">
+    <form method="get" action="/dashboard" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+      <label for="restaurantId"><b>Select Restaurant:</b></label>
+      <select id="restaurantId" name="restaurantId" onchange="this.form.submit()">
+        <option th:each="r : ${restaurants}"
+                th:value="${r.restaurantId}"
+                th:text="${r.restaurantName}"
+                th:selected="${selectedRestaurantId != null and r.restaurantId == selectedRestaurantId}">
+          Restaurant
+        </option>
+      </select>
+      <span style="flex:1"></span>
+      <a class="btn" href="/logout">Log out</a>
+    </form>
+  </div>
+
+  <h3>Incoming Orders</h3>
+
+  <div class="card" th:if="${orders == null or #lists.isEmpty(orders)}">
+    <p>No incoming orders for this restaurant.</p>
+  </div>
+
+  <div class="card" th:if="${orders != null and !#lists.isEmpty(orders)}">
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+      <tr>
+        <th style="text-align:left; border-bottom:1px solid #eee; padding:6px;">CartID</th>
+        <th style="text-align:left; border-bottom:1px solid #eee; padding:6px;">Customer</th>
+        <th style="text-align:left; border-bottom:1px solid #eee; padding:6px;">Item</th>
+        <th style="text-align:right; border-bottom:1px solid #eee; padding:6px;">Qty</th>
+        <th style="text-align:left; border-bottom:1px solid #eee; padding:6px;">Status</th>
+        <th style="text-align:right; border-bottom:1px solid #eee; padding:6px;">Line Total</th>
+        <th style="text-align:left; border-bottom:1px solid #eee; padding:6px;">Action</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="o : ${orders}">
+        <td style="padding:6px;" th:text="${o.cartId}">1</td>
+        <td style="padding:6px;" th:text="${o.customerUsername}">customer</td>
+        <td style="padding:6px;" th:text="${o.itemName}">item</td>
+        <td style="padding:6px; text-align:right;" th:text="${o.quantity}">1</td>
+        <td style="padding:6px;" th:text="${o.status}">sent</td>
+        <td style="padding:6px; text-align:right;" th:text="${o.lineTotal}">0</td>
+        <td style="padding:6px;">
+          <form th:if="${o.status != null and o.status.toString().equalsIgnoreCase('sent')}"
+                method="post"
+                th:action="@{/accept-order/{id}(id=${o.cartId})}">
+            <input type="hidden" name="restaurantId" th:value="${selectedRestaurantId}">
+            <button class="btn btn-primary" type="submit">Accept</button>
+          </form>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+</body>
+</html>
