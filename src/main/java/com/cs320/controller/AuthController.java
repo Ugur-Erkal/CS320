@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.cs320.service.UserService;
+
+import jakarta.servlet.http.HttpSession;
+
 @Controller
 public class AuthController {
 
@@ -59,6 +63,10 @@ public class AuthController {
         session.setAttribute("userId", u.getUserId());
         session.setAttribute("userType", u.getUserType());
         session.setAttribute("username", request.getUsername());
+
+        if (u.getUserType() != null && u.getUserType().equalsIgnoreCase("Manager")) {
+            return "redirect:/dashboard";
+        }
 
         return "redirect:search";
     }

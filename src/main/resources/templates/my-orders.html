@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: layout(~{::body})}">
+<body>
+
+<h2>My Orders</h2>
+
+<div th:if="${orders == null || orders.isEmpty()}" class="card">
+  <p>No order history.</p>
+  <a class="btn btn-primary" href="/search">Go to Search</a>
+</div>
+
+<div th:each="o : ${orders}" class="card">
+  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+    <strong th:text="${o.restaurantName}">Restaurant Name</strong>
+    <span>•</span>
+
+    <span th:if="${o.acceptedAt != null}">
+      • AcceptedAt:
+      <span th:text="${#dates.format(o.acceptedAt, 'yyyy-MM-dd HH:mm')}">date</span>
+    </span>
+
+    <span style="margin-left:auto;">
+      Total: <b th:text="${o.total}">0</b>
+    </span>
+  </div>
+
+  <div style="margin-top:10px;">
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+      <tr>
+        <th style="text-align:left; border-bottom:1px solid #eee; padding:6px;">Item</th>
+        <th style="text-align:right; border-bottom:1px solid #eee; padding:6px;">Price</th>
+        <th style="text-align:right; border-bottom:1px solid #eee; padding:6px;">Qty</th>
+        <th style="text-align:right; border-bottom:1px solid #eee; padding:6px;">Line Total</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="it : ${o.items}">
+        <td style="padding:6px;" th:text="${it.name}">Pizza</td>
+        <td style="padding:6px; text-align:right;" th:text="${it.price}">100</td>
+        <td style="padding:6px; text-align:right;" th:text="${it.quantity}">2</td>
+        <td style="padding:6px; text-align:right;" th:text="${it.lineTotal}">200</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+</body>
+</html>
