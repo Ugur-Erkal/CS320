@@ -1,16 +1,12 @@
 package com.cs320.controller;
 
-import com.cs320.controller.dto.LoginRequest;
-import com.cs320.controller.dto.RegisterRequest;
 import com.cs320.service.UserService;
 import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.cs320.service.UserService;
@@ -38,21 +34,17 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String doLogin(@Valid @ModelAttribute LoginRequest request,
-                          BindingResult bindingResult,
+    public String doLogin(@RequestParam String username,
+                          @RequestParam String password,
                           HttpSession session,
                           RedirectAttributes ra) {
 
-        if (bindingResult.hasErrors()) {
-            String errorMessage = bindingResult.getFieldErrors().stream()
-                    .findFirst()
-                    .map(error -> error.getDefaultMessage())
-                    .orElse("Validation failed.");
-            ra.addFlashAttribute("msg", errorMessage);
+        if (username == null || username.isBlank() || password == null || password.isBlank()) {
+            ra.addFlashAttribute("msg", "Username and password are required.");
             return "redirect:/login";
         }
 
-        var opt = userService.login(request.getUsername(), request.getPassword());
+        var opt = userService.login(username, password);
 
         if (opt.isEmpty()) {
             ra.addFlashAttribute("msg", "Invalid username or password.");
@@ -62,7 +54,7 @@ public class AuthController {
         var u = opt.get();
         session.setAttribute("userId", u.getUserId());
         session.setAttribute("userType", u.getUserType());
-        session.setAttribute("username", request.getUsername());
+        session.setAttribute("username", username);
 
         if (u.getUserType() != null && u.getUserType().equalsIgnoreCase("Manager")) {
             return "redirect:/dashboard";
@@ -73,22 +65,25 @@ public class AuthController {
 
 
     @PostMapping("/register")
-    public String doRegister(@Valid @ModelAttribute RegisterRequest request,
-                             BindingResult bindingResult,
+    public String doRegister(@RequestParam String username,
+                             @RequestParam String password,
+                             @RequestParam String userType,
+                             @RequestParam String address,
+                             @RequestParam String phoneNumber,
+                             @RequestParam String city,
                              RedirectAttributes ra) {
-        if (bindingResult.hasErrors()) {
-            String errorMessage = bindingResult.getFieldErrors().stream()
-                    .findFirst()
-                    .map(error -> error.getDefaultMessage())
-                    .orElse("Validation failed.");
-            ra.addFlashAttribute("msg", errorMessage);
+        if (username == null || username.isBlank() || 
+            password == null || password.isBlank() || 
+            userType == null || userType.isBlank() ||
+            address == null || address.isBlank() ||
+            phoneNumber == null || phoneNumber.isBlank() ||
+            city == null || city.isBlank()) {
+            ra.addFlashAttribute("msg", "All fields are required.");
             return "redirect:/register";
         }
 
         try {
-            userService.register(request.getUsername(), request.getPassword(),
-                    request.getUserType(), request.getAddress(),
-                    request.getPhoneNumber(), request.getCity());
+            userService.register(username, password, userType, address, phoneNumber, city);
             ra.addFlashAttribute("msg", "Account created. Please login.");
             return "redirect:/login";
         } catch (IllegalArgumentException ex) {
