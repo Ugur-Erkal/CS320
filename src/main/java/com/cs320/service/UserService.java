@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -61,7 +61,7 @@ public class UserService {
             return ps;
         }, kh);
 
-        return kh.getKey().intValue();
+        return Objects.requireNonNull(kh.getKey(), "Failed to generate user ID").intValue();
     }
 
     private Integer insertAddress(String address, String city) {
@@ -76,7 +76,7 @@ public class UserService {
             return ps;
         }, kh);
 
-        return kh.getKey().intValue();
+        return Objects.requireNonNull(kh.getKey(), "Failed to generate address ID").intValue();
     }
 
     private Integer insertPhone(String phoneNumber) {
@@ -90,7 +90,7 @@ public class UserService {
             return ps;
         }, kh);
 
-        return kh.getKey().intValue();
+        return Objects.requireNonNull(kh.getKey(), "Failed to generate phone ID").intValue();
     }
     public Optional<UserLoginResult> login(String username, String password) {
         return jdbc.query(
