@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: layout(~{::body})}">
+<body>
+
+<h2>Restaurant Ratings</h2>
+
+<div class="card">
+    <p th:if="${avgRating != null}">
+        <b>Average Rating:</b>
+        <span th:text="${#numbers.formatDecimal(avgRating, 1, 1)}"></span> / 5
+    </p>
+
+    <p th:if="${avgRating == null}">
+        No ratings yet.
+    </p>
+</div>
+
+<div class="card" th:if="${error}">
+    <p style="color:red;" th:text="${error}"></p>
+</div>
+
+<div class="card">
+    <h3>Add Your Review</h3>
+
+    <form method="post" th:action="@{/restaurants/{id}/ratings(id=${restaurantId})}">
+        <div>
+            <label>Username</label><br/>
+            <input name="username" required>
+        </div>
+
+        <div>
+            <label>Password</label><br/>
+            <input name="password" type="password" required>
+        </div>
+
+        <div>
+            <label>Rating (1–5)</label><br/>
+            <input name="rating" type="number" min="1" max="5" required>
+        </div>
+
+        <div>
+            <label>Comment</label><br/>
+            <textarea name="comment" rows="3"></textarea>
+        </div>
+
+        <div style="margin-top:10px;">
+            <button class="btn btn-primary" type="submit">Submit Review</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Reviews</h3>
+
+    <p th:if="${#lists.isEmpty(ratings)}">
+        No reviews submitted yet.
+    </p>
+
+    <div th:each="r : ${ratings}" class="card">
+        <div>
+            <b th:text="${r.Username}"></b>
+            <span> rated </span>
+            <b th:text="${r.Rating}"></b>/5
+        </div>
+
+        <div th:if="${r.Comment != null}" style="margin-top:4px;">
+            <i th:text="${r.Comment}"></i>
+        </div>
+
+        <div style="font-size:0.85em; color:#666; margin-top:4px;"
+             th:text="${r.RatingDate}">
+        </div>
+    </div>
+</div>
+
+<div style="margin-top:16px;">
+    <a href="/search">← Back to Search</a>
+</div>
+
+</body>
+</html>
