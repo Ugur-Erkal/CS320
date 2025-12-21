@@ -29,6 +29,7 @@ public class SearchService {
         return jdbc.queryForList(
                 """
                 SELECT
+                  r.RestaurantID AS restaurantId,
                   r.RestaurantName AS restaurantName,
                   r.City AS city,
                   r.CuisineType AS cuisineType,
