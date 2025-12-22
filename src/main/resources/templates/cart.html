@@ -5,9 +5,73 @@
 
 <h2>Your Cart</h2>
 
-<div class="card">
-  <p>Your cart is empty.</p>
-  <a class="btn btn-primary" href="/search">Go to Search</a>
+<p th:if="${error}" th:text="${error}" style="color:red; margin:0 0 12px 0;"></p>
+
+<!-- Empty -->
+<div class="card" th:if="${items == null or #lists.isEmpty(items)}">
+    <p>Your cart is empty.</p>
+    <a class="btn btn-primary" href="/search">Go to Search</a>
+</div>
+
+<!-- Non-empty -->
+<div class="card" th:if="${items != null and !#lists.isEmpty(items)}">
+    <h3>Items</h3>
+
+    <table style="width:100%; border-collapse:collapse;">
+        <thead>
+        <tr>
+            <th style="text-align:left; padding:6px 4px;">Item</th>
+            <th style="text-align:right; padding:6px 4px;">Unit Price</th>
+            <th style="text-align:right; padding:6px 4px;">Qty</th>
+            <th style="text-align:right; padding:6px 4px;">Subtotal</th>
+            <th style="text-align:right; padding:6px 4px;">Actions</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="it : ${items}">
+            <td style="padding:6px 4px;">
+                <b th:text="${it.menuItemName}"></b>
+                <div style="font-size:0.9em; color:#666;" th:text="${it.restaurantName}"></div>
+            </td>
+
+            <td style="padding:6px 4px; text-align:right;">
+                <span th:text="${it.price}"></span> TL
+            </td>
+
+            <td style="padding:6px 4px; text-align:right;">
+                <span th:text="${it.quantity}"></span>
+            </td>
+
+            <td style="padding:6px 4px; text-align:right;">
+                <span th:text="${it.subtotal}"></span> TL
+            </td>
+
+            <td style="padding:6px 4px; text-align:right;">
+                <form method="post" action="/cart/remove" style="display:inline;">
+                    <input type="hidden" name="menuItemId" th:value="${it.menuItemId}">
+                    <button class="btn" type="submit">Remove</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div style="margin-top:14px; display:flex; justify-content:flex-end;">
+        <div style="text-align:right;">
+            <div><b>Total:</b> <span th:text="${total}"></span> TL</div>
+
+            <div style="margin-top:10px;">
+                <form method="post" action="/cart/checkout" style="display:inline;">
+                    <button class="btn btn-primary" type="submit">Checkout / Place Order</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="margin-top:16px;">
+    <a href="/search">← Continue shopping</a>
 </div>
 
 </body>

@@ -29,6 +29,7 @@ public class OrderHistoryService {
                 JOIN `Holds` h ON h.CartID = c.CartID
                 JOIN `Restaurant` r ON r.RestaurantID = h.RestaurantID
                 WHERE b.UserID = ?
+                    AND c.Status IN ('sent', 'accepted')
                 ORDER BY c.CartID DESC
                 """,
                 (rs, rowNum) -> new OrderSummary(

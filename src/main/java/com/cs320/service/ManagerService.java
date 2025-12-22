@@ -48,6 +48,7 @@ public class ManagerService {
                 JOIN Contains ct ON ct.CartID = c.CartID
                 JOIN MenuItem mi ON mi.MenuItemID = ct.MenuItemID
                 WHERE h.RestaurantID = ?
+                    AND c.Status = 'sent'
                 ORDER BY c.CartID DESC, mi.Name ASC
                 """,
                 (rs, rowNum) -> new IncomingOrderRow(

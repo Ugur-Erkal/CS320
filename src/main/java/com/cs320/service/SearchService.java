@@ -33,6 +33,7 @@ public class SearchService {
                   r.RestaurantName AS restaurantName,
                   r.City AS city,
                   r.CuisineType AS cuisineType,
+                  m.MenuItemID AS menuItemId,
                   m.Name AS menuItemName,
                   m.Price AS price,
                   m.Description AS description,
