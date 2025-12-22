@@ -6,47 +6,79 @@
 <h2>My Orders</h2>
 
 <div th:if="${orders == null || orders.isEmpty()}" class="card">
-  <p>No order history.</p>
-  <a class="btn btn-primary" href="/search">Go to Search</a>
+    <p>No order history.</p>
+    <a class="btn btn-primary" href="/search">Go to Search</a>
 </div>
 
 <div th:each="o : ${orders}" class="card">
-  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-    <strong th:text="${o.restaurantName}">Restaurant Name</strong>
-    <span>•</span>
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <strong th:text="${o.restaurantName}">Restaurant Name</strong>
 
-    <span th:if="${o.acceptedAt != null}">
-      • AcceptedAt:
+        <span>&bull;</span>
+        <span>
+      Status: <b th:text="${o.status}">sent</b>
+    </span>
+
+        <span th:if="${o.acceptedAt != null}">
+      <span>&bull;</span>
+      AcceptedAt:
       <span th:text="${#dates.format(o.acceptedAt, 'yyyy-MM-dd HH:mm')}">date</span>
     </span>
 
-    <span style="margin-left:auto;">
+        <span style="margin-left:auto;">
       Total: <b th:text="${o.total}">0</b>
     </span>
-  </div>
+    </div>
 
-  <div style="margin-top:10px;">
-    <table style="width:100%; border-collapse:collapse;">
-      <thead>
-      <tr>
-        <th style="text-align:left; border-bottom:1px solid #eee; padding:6px;">Item</th>
-        <th style="text-align:right; border-bottom:1px solid #eee; padding:6px;">Price</th>
-        <th style="text-align:right; border-bottom:1px solid #eee; padding:6px;">Qty</th>
-        <th style="text-align:right; border-bottom:1px solid #eee; padding:6px;">Line Total</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr th:each="it : ${o.items}">
-        <td style="padding:6px;" th:text="${it.name}">Pizza</td>
-        <td style="padding:6px; text-align:right;" th:text="${it.price}">100</td>
-        <td style="padding:6px; text-align:right;" th:text="${it.quantity}">2</td>
-        <td style="padding:6px; text-align:right;" th:text="${it.lineTotal}">200</td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
+    <div style="margin-top:10px;">
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+            <tr>
+                <th style="text-align:left; border-bottom:1px solid #eee; padding:6px;">Item</th>
+                <th style="text-align:right; border-bottom:1px solid #eee; padding:6px;">Price</th>
+                <th style="text-align:right; border-bottom:1px solid #eee; padding:6px;">Qty</th>
+                <th style="text-align:right; border-bottom:1px solid #eee; padding:6px;">Line Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="it : ${o.items}">
+                <td style="padding:6px;" th:text="${it.name}">Pizza</td>
+                <td style="padding:6px; text-align:right;" th:text="${it.price}">100</td>
+                <td style="padding:6px; text-align:right;" th:text="${it.quantity}">2</td>
+                <td style="padding:6px; text-align:right;" th:text="${it.lineTotal}">200</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Rate & Comment (only for accepted orders) -->
+    <div style="margin-top:12px;" th:if="${o.status == 'accepted'}">
+        <form method="post" action="/orders/rate" class="card" style="margin:0;">
+            <input type="hidden" name="cartId" th:value="${o.cartId}"/>
+
+            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                <div>
+                    <label>Rating (1-5)</label><br/>
+                    <input type="number" name="rating" min="1" max="5" value="5" style="width:90px;">
+                </div>
+
+                <div style="flex:1; min-width:240px;">
+                    <label>Comment (optional)</label><br/>
+                    <input type="text" name="comment" placeholder="Write a short review..." style="width:100%;">
+                </div>
+
+                <div>
+                    <button class="btn btn-primary" type="submit">Submit Review</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div style="margin-top:12px;" th:if="${o.status == 'sent'}">
+        <p style="margin:0;">Waiting for manager acceptance…</p>
+    </div>
+
 </div>
-
 
 </body>
 </html>
