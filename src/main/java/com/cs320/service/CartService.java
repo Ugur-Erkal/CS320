@@ -21,7 +21,6 @@ public class CartService {
     }
 
     public int getOrCreateActiveCart(int userId) {
-        // Active cart = preparing
         Integer existing = jdbc.query(
                 """
                 SELECT c.CartID
@@ -38,7 +37,6 @@ public class CartService {
 
         if (existing != null) return existing;
 
-        // Create new cart
         KeyHolder kh = new GeneratedKeyHolder();
         jdbc.update(con -> {
             PreparedStatement ps = con.prepareStatement(
@@ -49,14 +47,11 @@ public class CartService {
         }, kh);
 
         int cartId = Optional.ofNullable(kh.getKey()).orElseThrow().intValue();
-
-        // Link to user
         jdbc.update("INSERT INTO Belongs(CartID, UserID) VALUES (?, ?)", cartId, userId);
         return cartId;
     }
 
-    public void ensureCartRestaurant(int cartId, int restaurantId) {
-        // If no restaurant assigned yet, assign it
+    private void ensureCartRestaurant(int cartId, int restaurantId) {
         Integer existing = jdbc.query(
                 "SELECT RestaurantID FROM Holds WHERE CartID = ? LIMIT 1",
                 rs -> rs.next() ? rs.getInt("RestaurantID") : null,
@@ -68,13 +63,14 @@ public class CartService {
             return;
         }
 
-        // If different restaurant, block (single-restaurant cart assumption)
         if (existing != restaurantId) {
             throw new IllegalStateException("Cart already contains items from another restaurant.");
         }
     }
 
     public void addToCart(int userId, int menuItemId, int quantity) {
+        if (quantity <= 0) quantity = 1;
+
         int cartId = getOrCreateActiveCart(userId);
 
         Integer restaurantId = jdbc.queryForObject(
@@ -94,7 +90,6 @@ public class CartService {
 
         ensureCartRestaurant(cartId, restaurantId);
 
-        // Upsert into Contains (MySQL syntax)
         jdbc.update(
                 """
                 INSERT INTO Contains(CartID, MenuItemID, Quantity)
@@ -146,16 +141,18 @@ public class CartService {
                 rs -> rs.next() ? rs.getDouble("total") : 0.0,
                 cartId
         );
+
         return total == null ? 0.0 : total;
     }
 
     public void removeFromCart(int userId, int menuItemId) {
         int cartId = getOrCreateActiveCart(userId);
+
         jdbc.update("DELETE FROM Contains WHERE CartID = ? AND MenuItemID = ?", cartId, menuItemId);
 
-        // If cart is empty, remove Holds row to allow choosing a different restaurant next time
         Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM Contains WHERE CartID = ?", Integer.class, cartId);
         if (count != null && count == 0) {
+            // Cart is empty -> allow choosing a different restaurant next time
             jdbc.update("DELETE FROM Holds WHERE CartID = ?", cartId);
         }
     }
@@ -163,11 +160,19 @@ public class CartService {
     public void checkout(int userId) {
         int cartId = getOrCreateActiveCart(userId);
 
-        Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM Contains WHERE CartID = ?", Integer.class, cartId);
-        if (count == null || count == 0) {
+        Integer itemCount = jdbc.queryForObject("SELECT COUNT(*) FROM Contains WHERE CartID = ?", Integer.class, cartId);
+        if (itemCount == null || itemCount == 0) {
             throw new IllegalStateException("Cart is empty.");
         }
 
-        jdbc.update("UPDATE Cart SET Status = 'sent' WHERE CartID = ? AND Status = 'preparing'", cartId);
+        Integer holdCount = jdbc.queryForObject("SELECT COUNT(*) FROM Holds WHERE CartID = ?", Integer.class, cartId);
+        if (holdCount == null || holdCount == 0) {
+            throw new IllegalStateException("No restaurant selected for this cart.");
+        }
+
+        jdbc.update(
+                "UPDATE Cart SET Status = 'sent' WHERE CartID = ? AND Status = 'preparing'",
+                cartId
+        );
     }
 }
