@@ -123,6 +123,15 @@ public class UserService {
         );
     }
 
+    public java.util.Optional<String> getUserType(int userId) {
+        return jdbc.query(
+                "SELECT UserType FROM User WHERE UserID = ?",
+                rs -> rs.next() ? java.util.Optional.ofNullable(rs.getString("UserType")) : java.util.Optional.empty(),
+                userId
+        );
+    }
+
+
 }
 
 

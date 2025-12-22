@@ -3,7 +3,7 @@
       th:replace="~{base :: layout(~{::body})}">
 <body>
 
-<h2>Search Restaurants & Menu Items</h2>
+<h2>Search Restaurants &amp; Menu Items</h2>
 
 <form class="card" method="get" action="/search">
     <div style="display:flex; gap:12px; flex-wrap:wrap;">
@@ -43,32 +43,51 @@
         No results found for your city.
     </p>
 
-    <div th:each="row : ${results}" class="card" style="margin-top:10px;">
-        <div>
-            <!-- Restaurant name clickable -->
-            <a th:href="@{/restaurant/{id}(id=${row.restaurantId})}"
-               th:text="${row.restaurantName}"
-               style="font-weight:700; text-decoration:none;"></a>
-
-            <span> - </span>
+    <div th:each="row : ${results}" class="card">
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <b th:text="${row.restaurantName}"></b>
+            <span>•</span>
             <span th:text="${row.city}"></span>
+            <span th:if="${row.cuisineType != null}"> | </span>
+            <span th:if="${row.cuisineType != null}" th:text="${row.cuisineType}"></span>
 
-            <span th:if="${row.cuisineType != null and row.cuisineType != ''}"> | </span>
-            <span th:if="${row.cuisineType != null and row.cuisineType != ''}"
-                  th:text="${row.cuisineType}"></span>
+            <span style="margin-left:auto; display:flex; gap:8px;">
+        <a class="btn" th:href="@{/restaurant/{id}(id=${row.restaurantId})}">Details</a>
+        <a class="btn" th:href="@{/restaurant/{id}/ratings(id=${row.restaurantId})}">Ratings</a>
+      </span>
         </div>
 
         <div style="margin-top:6px;">
             <div><b th:text="${row.menuItemName}"></b></div>
-            <div th:if="${row.description != null}" th:text="${row.description}"></div>
-            <div style="margin-top:4px;"><b th:text="${row.price}"></b> TL</div>
+            <div th:text="${row.description}"></div>
 
-            <form method="post" action="/cart/add" style="margin-top:8px; display:flex; gap:8px; align-items:center;">
-                <input type="hidden" name="menuItemId" th:value="${row.menuItemId}">
-                <input type="number" name="quantity" value="1" min="1" style="width:80px;">
-                <button class="btn btn-primary" type="submit">Add to Cart</button>
-            </form>
-            <a class="btn" href="/cart" style="margin-top:8px; display:inline-block;">View Cart</a>
+            <!-- Price block -->
+            <div style="margin-top:6px;">
+        <span th:if="${row.discountedPrice != null}">
+          <span style="text-decoration:line-through; opacity:0.7;">
+            <b th:text="${row.price}">0</b> TL
+          </span>
+          <span> → </span>
+          <b th:text="${row.discountedPrice}">0</b> TL
+          <span th:if="${row.discountPercent != null}">
+            (<span th:text="${row.discountPercent}">0</span>% off)
+          </span>
+        </span>
+
+                <span th:if="${row.discountedPrice == null}">
+          <b th:text="${row.price}">0</b> TL
+        </span>
+            </div>
+
+            <!-- Add to cart -->
+            <div style="margin-top:10px;">
+                <form method="post" th:action="@{/cart/add}">
+                    <input type="hidden" name="menuItemId" th:value="${row.menuItemId}">
+                    <input type="number" name="quantity" min="1" value="1" style="width:80px;">
+                    <button class="btn btn-primary" type="submit">Add to Cart</button>
+                </form>
+            </div>
+
         </div>
     </div>
 </div>
