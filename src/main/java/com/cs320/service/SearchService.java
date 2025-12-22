@@ -1,10 +1,10 @@
 package com.cs320.service;
 
-import com.cs320.controller.dto.SearchResult;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class SearchService {
@@ -15,74 +15,39 @@ public class SearchService {
         this.jdbc = jdbc;
     }
 
-    public List<SearchResult> searchMenuByCity(String city, String keyword) {
+    public List<Map<String, Object>> searchMenuByCity(String city, String keyword, String sort) {
 
-        String searchTerm = (keyword == null || keyword.isBlank())
-                ? "%"
-                : "%" + keyword.trim() + "%";
+        String orderBy = switch (sort == null ? "default" : sort) {
+            case "priceAsc" -> "m.Price ASC";
+            case "priceDesc" -> "m.Price DESC";
+            case "nameAsc" -> "m.Name ASC";
+            default -> "r.RestaurantName ASC";
+        };
 
-        String sql = """
-            SELECT 
-                R.RestaurantID,
-                R.RestaurantName,
-                R.CuisineType,
-                R.Address,
-                R.City,
-                M.MenuItemID,
-                M.Name AS MenuItem,
-                M.Description,
-                M.Price,
-                M.Image,
-                COUNT(DISTINCT Ra.RatingID) AS RatingCount,
-                AVG(Ra.Rating) AS AvgRating,
-                (
-                    SELECT D.Discount
-                    FROM Applied A2
-                    JOIN Discount D ON A2.DiscountID = D.DiscountID
-                    WHERE A2.MenuItemID = M.MenuItemID
-                      AND NOW() BETWEEN A2.StartDate AND A2.EndDate
-                    ORDER BY A2.StartDate DESC
-                    LIMIT 1
-                ) AS ActiveDiscount
-            FROM Restaurant R
-            JOIN Has H ON R.RestaurantID = H.RestaurantID
-            JOIN MenuItem M ON H.MenuItemID = M.MenuItemID
-            LEFT JOIN ForRestaurant FR ON FR.RestaurantID = R.RestaurantID
-            LEFT JOIN Ratings Ra ON FR.RatingID = Ra.RatingID
-            LEFT JOIN AssociatedWith AW ON R.RestaurantID = AW.RestaurantID
-            LEFT JOIN Keyword K ON AW.KeywordID = K.KeywordID
-            WHERE (
-                R.RestaurantName LIKE ?
-                OR M.Name LIKE ?
-                OR M.Description LIKE ?
-                OR K.Keyword LIKE ?
-            )
-            AND R.City = ?
-            GROUP BY R.RestaurantID, M.MenuItemID
-            ORDER BY (AvgRating IS NULL), AvgRating DESC
-        """;
+        String kw = (keyword == null || keyword.isBlank()) ? null : "%" + keyword.trim() + "%";
 
-        return jdbc.query(sql, (rs, rowNum) -> {
-            SearchResult r = new SearchResult();
-            r.setMenuItemId(rs.getInt("MenuItemID"));
-            r.setMenuItem(rs.getString("MenuItem"));
-            r.setDescription(rs.getString("Description"));
-            r.setPrice(rs.getDouble("Price"));
-            r.setImage(rs.getString("Image"));
-            r.setRestaurantName(rs.getString("RestaurantName"));
-            r.setCuisineType(rs.getString("CuisineType"));
-            r.setAddress(rs.getString("Address"));
-            r.setCity(rs.getString("City"));
-            r.setRatingCount(rs.getLong("RatingCount"));
-            r.setAvgRating(rs.getDouble("AvgRating"));
-
-            Double discount = rs.getObject("ActiveDiscount", Double.class);
-            if (discount != null) {
-                double discounted = r.getPrice() * (1 - discount / 100);
-                r.setDiscountedPrice(Math.round(discounted * 100.0) / 100.0);
-            }
-
-            return r;
-        }, searchTerm, searchTerm, searchTerm, searchTerm, city);
+        return jdbc.queryForList(
+                """
+                SELECT
+                  r.RestaurantID AS restaurantId,
+                  r.RestaurantName AS restaurantName,
+                  r.City AS city,
+                  r.CuisineType AS cuisineType,
+                  m.Name AS menuItemName,
+                  m.Price AS price,
+                  m.Description AS description,
+                  m.Image AS image
+                FROM Restaurant r
+                JOIN Has h ON h.RestaurantID = r.RestaurantID
+                JOIN MenuItem m ON m.MenuItemID = h.MenuItemID
+                WHERE r.City = ?
+                  AND ( ? IS NULL
+                        OR m.Name LIKE ?
+                        OR m.Description LIKE ?
+                        OR r.RestaurantName LIKE ? )
+                ORDER BY
+                """ + orderBy,
+                city, kw, kw, kw, kw
+        );
     }
 }
