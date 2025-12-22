@@ -70,5 +70,20 @@ public class ManagerService {
                 WHERE CartID = ?
                 """, cartId);
     }
+
+    public boolean managesRestaurant(int managerUserId, int restaurantId) {
+        Integer exists = jdbc.query(
+                """
+                SELECT 1
+                FROM Manages
+                WHERE UserID = ? AND RestaurantID = ?
+                LIMIT 1
+                """,
+                rs -> rs.next() ? 1 : null,
+                managerUserId, restaurantId
+        );
+        return exists != null;
+    }
+
 }
 
