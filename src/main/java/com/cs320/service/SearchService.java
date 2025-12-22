@@ -49,7 +49,5 @@ public class SearchService {
                 """ + orderBy,
                 city, kw, kw, kw, kw
         );
-
-
     }
 }

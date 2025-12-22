@@ -6,60 +6,64 @@
 <h2>Search Restaurants & Menu Items</h2>
 
 <form class="card" method="get" action="/search">
-  <div style="display:flex; gap:12px; flex-wrap:wrap;">
-    <div>
-      <label>City</label><br/>
-      <input name="city" th:value="${userCity}" disabled>
+    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <div>
+            <label>City</label><br/>
+            <input name="city" th:value="${userCity}" disabled>
+        </div>
+
+        <div>
+            <label>Keyword</label><br/>
+            <input name="keyword" placeholder="e.g., pizza" th:value="${keyword}">
+        </div>
+
+        <div>
+            <label>Sort</label><br/>
+            <select name="sort">
+                <option value="" th:selected="${sort == null || sort == ''}">Default</option>
+                <option value="priceAsc" th:selected="${sort == 'priceAsc'}">Price (low → high)</option>
+                <option value="priceDesc" th:selected="${sort == 'priceDesc'}">Price (high → low)</option>
+                <option value="nameAsc" th:selected="${sort == 'nameAsc'}">Name (A → Z)</option>
+            </select>
+        </div>
     </div>
 
-    <div>
-      <label>Keyword</label><br/>
-
-      <input name="keyword" placeholder="e.g., pizza" th:value="${keyword}">
+    <div style="margin-top:12px;">
+        <button class="btn btn-primary" type="submit">Search</button>
+        <a class="btn" href="/search">Reset</a>
     </div>
-
-    <div>
-      <label>Sort</label><br/>
-      <select name="sort">
-        <option value="" th:selected="${sort == null || sort == ''}">Default</option>
-        <option value="priceAsc" th:selected="${sort == 'priceAsc'}">Price (low → high)</option>
-        <option value="priceDesc" th:selected="${sort == 'priceDesc'}">Price (high → low)</option>
-        <option value="nameAsc" th:selected="${sort == 'nameAsc'}">Name (A → Z)</option>
-      </select>
-    </div>
-  </div>
-
-  <div style="margin-top:12px;">
-    <button class="btn btn-primary" type="submit">Search</button>
-    <a class="btn" href="/search">Reset</a>
-  </div>
 </form>
 
 <div class="card">
-  <h3>Results</h3>
+    <h3>Results</h3>
 
-  <p th:if="${error}" th:text="${error}" style="margin:0;"></p>
+    <p th:if="${error}" th:text="${error}" style="margin:0;"></p>
 
-  <p th:if="${error == null and (#lists.isEmpty(results))}" style="margin:0;">
-    No results found for your city.
-  </p>
+    <p th:if="${error == null and (#lists.isEmpty(results))}" style="margin:0;">
+        No results found for your city.
+    </p>
 
+    <div th:each="row : ${results}" class="card" style="margin-top:10px;">
+        <div>
+            <!-- Restaurant name clickable -->
+            <a th:href="@{/restaurant/{id}(id=${row.restaurantId})}"
+               th:text="${row.restaurantName}"
+               style="font-weight:700; text-decoration:none;"></a>
 
-  <div th:each="row : ${results}" class="card">
-    <div>
-      <b th:text="${row.restaurantName}"></b>
-      <span> - </span>
-      <span th:text="${row.city}"></span>
-      <span th:if="${row.cuisineType != null}"> | </span>
-      <span th:text="${row.cuisineType}"></span>
+            <span> - </span>
+            <span th:text="${row.city}"></span>
+
+            <span th:if="${row.cuisineType != null and row.cuisineType != ''}"> | </span>
+            <span th:if="${row.cuisineType != null and row.cuisineType != ''}"
+                  th:text="${row.cuisineType}"></span>
+        </div>
+
+        <div style="margin-top:6px;">
+            <div><b th:text="${row.menuItemName}"></b></div>
+            <div th:if="${row.description != null}" th:text="${row.description}"></div>
+            <div style="margin-top:4px;"><b th:text="${row.price}"></b> TL</div>
+        </div>
     </div>
-
-    <div style="margin-top:6px;">
-      <div><b th:text="${row.menuItemName}"></b></div>
-      <div th:text="${row.description}"></div>
-      <div><b th:text="${row.price}"></b> TL</div>
-    </div>
-  </div>
 </div>
 
 </body>

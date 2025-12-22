@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: layout(~{::body})}">
+<body>
+
+<div class="card" th:if="${error != null}">
+    <p th:text="${error}">Error</p>
+    <a class="btn" href="/search">Back to search</a>
+</div>
+
+<div th:if="${restaurant != null}">
+
+    <div class="card">
+        <h2 th:text="${restaurant.restaurantName}">Restaurant Name</h2>
+        <p>
+            <span th:text="${restaurant.cuisineType}">Cuisine</span>
+            • <span th:text="${restaurant.city}">City</span>
+        </p>
+        <p th:text="${restaurant.address}">Address</p>
+
+        <form method="get" th:action="@{/restaurant/{id}(id=${restaurant.restaurantId})}" style="display:flex; gap:10px;">
+            <input type="text" name="q" placeholder="Search in this restaurant..." th:value="${q}">
+            <button class="btn btn-primary" type="submit">Search</button>
+            <a class="btn" href="/search">Back</a>
+        </form>
+    </div>
+
+    <div class="card" th:if="${restaurant.menuItems == null or #lists.isEmpty(restaurant.menuItems)}">
+        <p>No menu items found.</p>
+    </div>
+
+    <div class="card" th:if="${restaurant.menuItems != null and !#lists.isEmpty(restaurant.menuItems)}">
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+            <tr>
+                <th style="text-align:left; border-bottom:1px solid #eee; padding:6px;">Item</th>
+                <th style="text-align:left; border-bottom:1px solid #eee; padding:6px;">Description</th>
+                <th style="text-align:right; border-bottom:1px solid #eee; padding:6px;">Price</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="m : ${restaurant.menuItems}">
+                <td style="padding:6px;">
+                    <b th:text="${m.name}">Item</b>
+                </td>
+                <td style="padding:6px;" th:text="${m.description}">Desc</td>
+                <td style="padding:6px; text-align:right;" th:text="${m.price}">0</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>
