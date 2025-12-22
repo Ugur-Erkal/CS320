@@ -1,5 +1,5 @@
 package dao;
-import models.User;
+import models.user;
 import utils.DataSource;
 
 import java.sql.Connection;
@@ -15,7 +15,7 @@ import java.util.List;
         private static final String USER_TABLE = "`User`";
 
 
-        public void addUser(User user) throws SQLException {
+        public void addUser(user user) throws SQLException {
             String sql = "INSERT INTO " + USER_TABLE +
                     " (Username, Password, UserType) VALUES (?, ?, ?)";
 
@@ -31,7 +31,7 @@ import java.util.List;
         }
 
 
-        public User findById(int userId) throws SQLException {
+        public user findById(int userId) throws SQLException {
             String sql = "SELECT UserID, Username, Password, UserType FROM " +
                     USER_TABLE + " WHERE UserID = ?";
 
@@ -50,7 +50,7 @@ import java.util.List;
         }
 
 
-        public User findByUsername(String username) throws SQLException {
+        public user findByUsername(String username) throws SQLException {
             String sql = "SELECT UserID, Username, Password, UserType FROM " +
                     USER_TABLE + " WHERE Username = ?";
 
@@ -68,10 +68,8 @@ import java.util.List;
             return null;
         }
 
-        /* ======================
-           LOGIN (şimdilik plain)
-           ====================== */
-        public User login(String username, String password) throws SQLException {
+
+        public user login(String username, String password) throws SQLException {
             String sql = "SELECT UserID, Username, Password, UserType FROM " +
                     USER_TABLE + " WHERE Username = ? AND Password = ?";
 
@@ -91,8 +89,8 @@ import java.util.List;
         }
 
 
-        public List<User> findAll() throws SQLException {
-            List<User> users = new ArrayList<>();
+        public List<user> findAll() throws SQLException {
+            List<user> users = new ArrayList<>();
             String sql = "SELECT UserID, Username, Password, UserType FROM " +
                     USER_TABLE + " ORDER BY Username";
 
@@ -108,7 +106,7 @@ import java.util.List;
         }
 
 
-        public void updateUser(User user) throws SQLException {
+        public void updateUser(user user) throws SQLException {
             String sql = "UPDATE " + USER_TABLE +
                     " SET Username = ?, Password = ?, UserType = ?" +
                     " WHERE UserID = ?";
@@ -138,8 +136,8 @@ import java.util.List;
         }
 
 
-        private User mapRow(ResultSet rs) throws SQLException {
-            return new User(
+        private user mapRow(ResultSet rs) throws SQLException {
+            return new user(
                     rs.getInt("UserID"),
                     rs.getString("Username"),
                     rs.getString("Password"),
