@@ -44,10 +44,8 @@ public class OrderHistoryService {
                         rs.getInt("restaurantId"),
                         rs.getString("restaurantName"),
                         new ArrayList<>(),
-                        BigDecimal.ZERO
-                ),
-                userId
-        );
+                        BigDecimal.ZERO),
+                userId);
 
         for (OrderSummary o : orders) {
             List<OrderItemRow> items = jdbc.query("""
@@ -65,10 +63,8 @@ public class OrderHistoryService {
                             rs.getInt("menuItemId"),
                             rs.getString("name"),
                             rs.getBigDecimal("price"),
-                            rs.getInt("quantity")
-                    ),
-                    o.cartId()
-            );
+                            rs.getInt("quantity")),
+                    o.cartId());
 
             BigDecimal total = items.stream()
                     .map(i -> i.price().multiply(BigDecimal.valueOf(i.quantity())))

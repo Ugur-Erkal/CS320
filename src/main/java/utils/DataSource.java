@@ -6,12 +6,10 @@ import java.sql.SQLException;
 
 public class DataSource {
 
-    private static final String URL =
-            System.getenv().getOrDefault("DB_URL", "jdbc:mysql://localhost:3306/food_ordering?useSSL=false&serverTimezone=UTC");
-    private static final String USER =
-            System.getenv().getOrDefault("DB_USER", "root");
-    private static final String PASSWORD =
-            System.getenv().getOrDefault("DB_PASSWORD", "BURAYA ŞİFRENİZİ GİRİN");
+    private static final String URL = System.getenv().getOrDefault("DB_URL",
+            "jdbc:mysql://localhost:3306/food_ordering?useSSL=false&serverTimezone=UTC");
+    private static final String USER = System.getenv().getOrDefault("DB_USER", "root");
+    private static final String PASSWORD = System.getenv().getOrDefault("DB_PASSWORD", "BURAYA ŞİFRENİZİ GİRİN");
 
     public static Connection getConnection() throws SQLException {
         System.out.println("DB CONNECT TRY -> " + URL + " user=" + USER);

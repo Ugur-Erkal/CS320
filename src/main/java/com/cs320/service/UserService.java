@@ -24,11 +24,11 @@ public class UserService {
 
     @Transactional
     public void register(String username,
-                         String password,
-                         String userType,
-                         String address,
-                         String phoneNumber,
-                         String city) {
+            String password,
+            String userType,
+            String address,
+            String phoneNumber,
+            String city) {
 
         try {
             Integer userId = insertUser(username, password, userType);
@@ -53,8 +53,7 @@ public class UserService {
         jdbc.update(con -> {
             PreparedStatement ps = con.prepareStatement(
                     "INSERT INTO User (Username, Password, UserType) VALUES (?, ?, ?)",
-                    Statement.RETURN_GENERATED_KEYS
-            );
+                    Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, username);
             ps.setString(2, password);
             ps.setString(3, userType);
@@ -69,8 +68,7 @@ public class UserService {
         jdbc.update(con -> {
             PreparedStatement ps = con.prepareStatement(
                     "INSERT INTO UserAddress (Address, City) VALUES (?, ?)",
-                    Statement.RETURN_GENERATED_KEYS
-            );
+                    Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, address);
             ps.setString(2, city);
             return ps;
@@ -84,14 +82,14 @@ public class UserService {
         jdbc.update(con -> {
             PreparedStatement ps = con.prepareStatement(
                     "INSERT INTO UserPhoneNumber (PhoneNumber) VALUES (?)",
-                    Statement.RETURN_GENERATED_KEYS
-            );
+                    Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, phoneNumber);
             return ps;
         }, kh);
 
         return Objects.requireNonNull(kh.getKey(), "Failed to generate phone ID").intValue();
     }
+
     public Optional<UserLoginResult> login(String username, String password) {
         return jdbc.query(
                 "SELECT UserID, UserType FROM `User` WHERE Username = ? AND Password = ?",
@@ -99,40 +97,31 @@ public class UserService {
                     if (rs.next()) {
                         return Optional.of(new UserLoginResult(
                                 rs.getInt("UserID"),
-                                rs.getString("UserType")
-                        ));
+                                rs.getString("UserType")));
                     }
                     return Optional.empty();
                 },
-                username, password
-        );
+                username, password);
     }
-
 
     public Optional<String> getUserCity(int userId) {
         return jdbc.query(
                 """
-                SELECT ua.City
-                FROM Lives l
-                JOIN UserAddress ua ON ua.AddressID = l.AddressID
-                WHERE l.UserID = ?
-                LIMIT 1
-                """,
+                        SELECT ua.City
+                        FROM Lives l
+                        JOIN UserAddress ua ON ua.AddressID = l.AddressID
+                        WHERE l.UserID = ?
+                        LIMIT 1
+                        """,
                 rs -> rs.next() ? Optional.ofNullable(rs.getString("City")) : Optional.empty(),
-                userId
-        );
+                userId);
     }
 
     public java.util.Optional<String> getUserType(int userId) {
         return jdbc.query(
                 "SELECT UserType FROM User WHERE UserID = ?",
                 rs -> rs.next() ? java.util.Optional.ofNullable(rs.getString("UserType")) : java.util.Optional.empty(),
-                userId
-        );
+                userId);
     }
 
-
 }
-
-
-

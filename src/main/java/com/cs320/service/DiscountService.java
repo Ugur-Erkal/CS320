@@ -22,13 +22,12 @@ public class DiscountService {
     public boolean isManagerOfRestaurant(int managerUserId, int restaurantId) {
         Integer cnt = jdbc.queryForObject(
                 """
-                SELECT COUNT(*)
-                FROM Manages
-                WHERE UserID = ? AND RestaurantID = ?
-                """,
+                        SELECT COUNT(*)
+                        FROM Manages
+                        WHERE UserID = ? AND RestaurantID = ?
+                        """,
                 Integer.class,
-                managerUserId, restaurantId
-        );
+                managerUserId, restaurantId);
         return cnt != null && cnt > 0;
     }
 
@@ -36,13 +35,12 @@ public class DiscountService {
     public boolean isMenuItemOwnedByRestaurant(int menuItemId, int restaurantId) {
         Integer cnt = jdbc.queryForObject(
                 """
-                SELECT COUNT(*)
-                FROM Has
-                WHERE RestaurantID = ? AND MenuItemID = ?
-                """,
+                        SELECT COUNT(*)
+                        FROM Has
+                        WHERE RestaurantID = ? AND MenuItemID = ?
+                        """,
                 Integer.class,
-                restaurantId, menuItemId
-        );
+                restaurantId, menuItemId);
         return cnt != null && cnt > 0;
     }
 
@@ -50,39 +48,38 @@ public class DiscountService {
     public List<MenuItemOption> getMenuItemsForRestaurant(int restaurantId) {
         return jdbc.query(
                 """
-                SELECT mi.MenuItemID, mi.Name
-                FROM Has h
-                JOIN MenuItem mi ON mi.MenuItemID = h.MenuItemID
-                WHERE h.RestaurantID = ?
-                ORDER BY mi.Name ASC
-                """,
+                        SELECT mi.MenuItemID, mi.Name
+                        FROM Has h
+                        JOIN MenuItem mi ON mi.MenuItemID = h.MenuItemID
+                        WHERE h.RestaurantID = ?
+                        ORDER BY mi.Name ASC
+                        """,
                 (rs, rowNum) -> new MenuItemOption(
                         rs.getInt("MenuItemID"),
-                        rs.getString("Name")
-                ),
-                restaurantId
-        );
+                        rs.getString("Name")),
+                restaurantId);
     }
 
     // DiscountID varsa onu kullan, yoksa oluştur
     private int getOrCreateDiscountId(double discountPercent) {
         Integer existing = jdbc.query(
                 """
-                SELECT DiscountID
-                FROM Discount
-                WHERE Discount = ?
-                LIMIT 1
-                """,
+                        SELECT DiscountID
+                        FROM Discount
+                        WHERE Discount = ?
+                        LIMIT 1
+                        """,
                 rs -> rs.next() ? rs.getInt("DiscountID") : null,
-                discountPercent
-        );
+                discountPercent);
 
-        if (existing != null) return existing;
+        if (existing != null)
+            return existing;
 
         jdbc.update("INSERT INTO Discount(Discount) VALUES (?)", discountPercent);
 
         Integer id = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Integer.class);
-        if (id == null) throw new IllegalStateException("Failed to create Discount row.");
+        if (id == null)
+            throw new IllegalStateException("Failed to create Discount row.");
         return id;
     }
 
@@ -99,48 +96,45 @@ public class DiscountService {
 
         jdbc.update(
                 """
-                INSERT INTO Applied(DiscountID, MenuItemID, StartDate, EndDate)
-                VALUES (?, ?, ?, ?)
-                """,
+                        INSERT INTO Applied(DiscountID, MenuItemID, StartDate, EndDate)
+                        VALUES (?, ?, ?, ?)
+                        """,
                 discountId,
                 menuItemId,
                 Timestamp.valueOf(start),
-                Timestamp.valueOf(end)
-        );
+                Timestamp.valueOf(end));
     }
 
     // Manager dashboard'da göstermek için indirimleri listele
     public List<Map<String, Object>> getDiscountsForRestaurant(int restaurantId) {
         return jdbc.queryForList(
                 """
-                SELECT
-                  mi.MenuItemID AS menuItemId,
-                  mi.Name AS menuItemName,
-                  d.Discount AS discountPercent,
-                  ap.StartDate AS startDate,
-                  ap.EndDate AS endDate
-                FROM Has h
-                JOIN MenuItem mi ON mi.MenuItemID = h.MenuItemID
-                JOIN Applied ap ON ap.MenuItemID = mi.MenuItemID
-                JOIN Discount d ON d.DiscountID = ap.DiscountID
-                WHERE h.RestaurantID = ?
-                ORDER BY ap.EndDate DESC, mi.Name ASC
-                """,
-                restaurantId
-        );
+                        SELECT
+                          mi.MenuItemID AS menuItemId,
+                          mi.Name AS menuItemName,
+                          d.Discount AS discountPercent,
+                          ap.StartDate AS startDate,
+                          ap.EndDate AS endDate
+                        FROM Has h
+                        JOIN MenuItem mi ON mi.MenuItemID = h.MenuItemID
+                        JOIN Applied ap ON ap.MenuItemID = mi.MenuItemID
+                        JOIN Discount d ON d.DiscountID = ap.DiscountID
+                        WHERE h.RestaurantID = ?
+                        ORDER BY ap.EndDate DESC, mi.Name ASC
+                        """,
+                restaurantId);
     }
 
     public boolean menuItemBelongsToRestaurant(int menuItemId, int restaurantId) {
         Integer exists = jdbc.query(
                 """
-                SELECT 1
-                FROM Has
-                WHERE RestaurantID = ? AND MenuItemID = ?
-                LIMIT 1
-                """,
+                        SELECT 1
+                        FROM Has
+                        WHERE RestaurantID = ? AND MenuItemID = ?
+                        LIMIT 1
+                        """,
                 rs -> rs.next() ? 1 : null,
-                restaurantId, menuItemId
-        );
+                restaurantId, menuItemId);
         return exists != null;
     }
 

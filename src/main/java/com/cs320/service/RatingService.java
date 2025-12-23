@@ -25,34 +25,32 @@ public class RatingService {
     public List<Map<String, Object>> getRatingsForRestaurant(int restaurantId) {
         return jdbc.queryForList(
                 """
-                SELECT
-                  r.Rating,
-                  r.Comment,
-                  r.RatingDate,
-                  u.Username
-                FROM `ratings` r
-                JOIN `forrestaurant` fr ON fr.RatingID = r.RatingID
-                JOIN `writtenby` wb ON wb.RatingID = r.RatingID
-                JOIN `user` u ON u.UserID = wb.UserID
-                WHERE fr.RestaurantID = ?
-                ORDER BY r.RatingDate DESC
-                """,
-                restaurantId
-        );
+                        SELECT
+                          r.Rating,
+                          r.Comment,
+                          r.RatingDate,
+                          u.Username
+                        FROM `ratings` r
+                        JOIN `forrestaurant` fr ON fr.RatingID = r.RatingID
+                        JOIN `writtenby` wb ON wb.RatingID = r.RatingID
+                        JOIN `user` u ON u.UserID = wb.UserID
+                        WHERE fr.RestaurantID = ?
+                        ORDER BY r.RatingDate DESC
+                        """,
+                restaurantId);
     }
 
     // Ortalama rating hesapla
     public Double getAverageRatingForRestaurant(int restaurantId) {
         return jdbc.queryForObject(
                 """
-                SELECT AVG(r.Rating)
-                FROM `ratings` r
-                JOIN `forrestaurant` fr ON fr.RatingID = r.RatingID
-                WHERE fr.RestaurantID = ?
-                """,
+                        SELECT AVG(r.Rating)
+                        FROM `ratings` r
+                        JOIN `forrestaurant` fr ON fr.RatingID = r.RatingID
+                        WHERE fr.RestaurantID = ?
+                        """,
                 Double.class,
-                restaurantId
-        );
+                restaurantId);
     }
 
     // Yeni rating ekle (restaurant sayfasından)
@@ -64,13 +62,12 @@ public class RatingService {
 
         jdbc.update(
                 """
-                INSERT INTO `ratings` (Rating, RatingDate, Comment)
-                VALUES (?, ?, ?)
-                """,
+                        INSERT INTO `ratings` (Rating, RatingDate, Comment)
+                        VALUES (?, ?, ?)
+                        """,
                 rating,
                 now,
-                cleanComment
-        );
+                cleanComment);
 
         Integer ratingId = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Integer.class);
         if (ratingId == null) {
@@ -89,8 +86,7 @@ public class RatingService {
         Integer cnt = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM `ratings` WHERE CartID = ?",
                 Integer.class,
-                cartId
-        );
+                cartId);
         return cnt != null && cnt > 0;
     }
 
@@ -106,18 +102,17 @@ public class RatingService {
         // Ownership + accepted + restaurantId
         Integer restaurantId = jdbc.queryForObject(
                 """
-                SELECT h.RestaurantID
-                FROM `belongs` b
-                JOIN `cart` c  ON c.CartID = b.CartID
-                JOIN `holds` h ON h.CartID = c.CartID
-                WHERE b.UserID = ?
-                  AND c.CartID = ?
-                  AND c.`Status` = 'accepted'
-                LIMIT 1
-                """,
+                        SELECT h.RestaurantID
+                        FROM `belongs` b
+                        JOIN `cart` c  ON c.CartID = b.CartID
+                        JOIN `holds` h ON h.CartID = c.CartID
+                        WHERE b.UserID = ?
+                          AND c.CartID = ?
+                          AND c.`Status` = 'accepted'
+                        LIMIT 1
+                        """,
                 Integer.class,
-                userId, cartId
-        );
+                userId, cartId);
 
         if (restaurantId == null) {
             throw new IllegalArgumentException("You can only rate accepted orders that belong to you.");
@@ -134,11 +129,10 @@ public class RatingService {
         try {
             jdbc.update(
                     """
-                    INSERT INTO `ratings` (Rating, RatingDate, Comment, CartID)
-                    VALUES (?, ?, ?, ?)
-                    """,
-                    rating, now, cleanComment, cartId
-            );
+                            INSERT INTO `ratings` (Rating, RatingDate, Comment, CartID)
+                            VALUES (?, ?, ?, ?)
+                            """,
+                    rating, now, cleanComment, cartId);
         } catch (DuplicateKeyException ex) {
             throw new IllegalArgumentException("This order has already been rated.");
         }
@@ -156,15 +150,14 @@ public class RatingService {
     public Set<Integer> getRatedCartIdsForUser(int userId) {
         List<Integer> ids = jdbc.query(
                 """
-                SELECT r.CartID
-                FROM `ratings` r
-                JOIN `belongs` b ON b.CartID = r.CartID
-                WHERE b.UserID = ?
-                  AND r.CartID IS NOT NULL
-                """,
+                        SELECT r.CartID
+                        FROM `ratings` r
+                        JOIN `belongs` b ON b.CartID = r.CartID
+                        WHERE b.UserID = ?
+                          AND r.CartID IS NOT NULL
+                        """,
                 (rs, rowNum) -> rs.getInt("CartID"),
-                userId
-        );
+                userId);
         return new HashSet<>(ids);
     }
 
@@ -174,19 +167,18 @@ public class RatingService {
 
         List<Map<String, Object>> rows = jdbc.queryForList(
                 """
-                SELECT
-                    r.CartID     AS cartId,
-                    r.Rating     AS rating,
-                    r.Comment    AS comment,
-                    r.RatingDate AS ratingDate
-                FROM `ratings` r
-                JOIN `belongs` b ON b.CartID = r.CartID
-                WHERE b.UserID = ?
-                  AND r.CartID IS NOT NULL
-                ORDER BY r.RatingDate DESC
-                """,
-                userId
-        );
+                        SELECT
+                            r.CartID     AS cartId,
+                            r.Rating     AS rating,
+                            r.Comment    AS comment,
+                            r.RatingDate AS ratingDate
+                        FROM `ratings` r
+                        JOIN `belongs` b ON b.CartID = r.CartID
+                        WHERE b.UserID = ?
+                          AND r.CartID IS NOT NULL
+                        ORDER BY r.RatingDate DESC
+                        """,
+                userId);
 
         Map<Integer, Map<String, Object>> map = new HashMap<>();
         for (Map<String, Object> row : rows) {

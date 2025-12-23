@@ -9,10 +9,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.cs320.service.UserService;
-
-import jakarta.servlet.http.HttpSession;
-
 @Controller
 public class AuthController {
 

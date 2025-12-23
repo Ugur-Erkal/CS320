@@ -1,9 +1,9 @@
 # PLEASE SET UP VERIFIED COMMITS
 
 
-# 🚀 Project Name
+# 🚀 Food Ordering System FOS
 
-A short description of what project does and why it’s useful.
+A Java Spring Boot-based platform enabling users to browse menus, place orders, and manage restaurant operations efficiently. It bridges the gap between local restaurants and customers through a streamlined digital interface.
 
 ---
 
@@ -17,14 +17,21 @@ A short description of what project does and why it’s useful.
 ---
 
 ## 📌 About
-Explain what the project is, its purpose, and any background information.
-
+This project is developed as part of the CS320 curriculum. It uses a Spring Boot backend and a MySQL database to handle real-time food ordering, cart management, and restaurant analytics. The system focuses on robust data integrity and role-based access for both customers and restaurant managers.
 ---
 
 ## ✨ Features
-- Feature 1
-- Feature 2
-- Feature 3
+User Management: Secure registration and login for both customers and restaurant managers.
+
+Advanced Browsing: Filter restaurants by cuisine, rating, price range, and delivery time.
+
+Smart Shopping Cart: Automatic recalculation of totals (including taxes) with a strict "one restaurant at a time" constraint.
+
+Order Tracking: Real-time status updates from order placement to manager acceptance.
+
+Manager Dashboard: CRUD operations for menu items, restaurant availability toggling, and sales statistics (revenue and order counts).
+
+Feedback System: Verified rating and review system accessible only after order completion.
 
 ---
 
@@ -68,11 +75,5 @@ git commit -S -m "Your signed commit"
 ```
 ### testing and other extensions in use:
 
-- Junit 5   
-    - unit and integration tests, will be added as CI later
+JaCoCo: Generates code coverage reports.
 
-- JaCoCo
-    - coverage report, also to be added to CI later
-
-- linter TBD
-    - spotless, google java formater maybe
