@@ -3,63 +3,120 @@
       th:replace="~{base :: layout(~{::body})}">
 <body>
 
-<h2>Search Restaurants & Menu Items</h2>
+<h2>Search Restaurants &amp; Menu Items</h2>
 
 <form class="card" method="get" action="/search">
-  <div style="display:flex; gap:12px; flex-wrap:wrap;">
-    <div>
-      <label>City</label><br/>
-      <input name="city" th:value="${userCity}" disabled>
+    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <div>
+            <label>City</label><br/>
+            <input name="city" th:value="${userCity}" disabled>
+        </div>
+
+        <div>
+            <label>Keyword</label><br/>
+            <input name="keyword" placeholder="e.g., pizza" th:value="${keyword}">
+        </div>
+
+        <div>
+            <label>Sort</label><br/>
+            <select name="sort">
+                <option value="" th:selected="${sort == null || sort == ''}">Default</option>
+                <option value="priceAsc" th:selected="${sort == 'priceAsc'}">Price (low → high)</option>
+                <option value="priceDesc" th:selected="${sort == 'priceDesc'}">Price (high → low)</option>
+                <option value="nameAsc" th:selected="${sort == 'nameAsc'}">Name (A → Z)</option>
+            </select>
+        </div>
     </div>
 
-    <div>
-      <label>Keyword</label><br/>
-
-      <input name="keyword" placeholder="e.g., pizza" th:value="${keyword}">
+    <div style="margin-top:12px;">
+        <button class="btn btn-primary" type="submit">Search</button>
+        <a class="btn" href="/search">Reset</a>
     </div>
-
-    <div>
-      <label>Sort</label><br/>
-      <select name="sort">
-        <option value="" th:selected="${sort == null || sort == ''}">Default</option>
-        <option value="priceAsc" th:selected="${sort == 'priceAsc'}">Price (low → high)</option>
-        <option value="priceDesc" th:selected="${sort == 'priceDesc'}">Price (high → low)</option>
-        <option value="nameAsc" th:selected="${sort == 'nameAsc'}">Name (A → Z)</option>
-      </select>
-    </div>
-  </div>
-
-  <div style="margin-top:12px;">
-    <button class="btn btn-primary" type="submit">Search</button>
-    <a class="btn" href="/search">Reset</a>
-  </div>
 </form>
 
 <div class="card">
-  <h3>Results</h3>
+    <h3>Results</h3>
 
-  <p th:if="${error}" th:text="${error}" style="margin:0;"></p>
+    <p th:if="${error}" th:text="${error}" style="margin:0;"></p>
 
-  <p th:if="${error == null and (#lists.isEmpty(results))}" style="margin:0;">
-    No results found for your city.
-  </p>
+    <p th:if="${error == null and (#lists.isEmpty(results))}" style="margin:0;">
+        No results found for your city.
+    </p>
 
+    <!-- RESTAURANT-GROUPED VIEW -->
+    <div th:if="${results != null and !#lists.isEmpty(results)}">
 
-  <div th:each="row : ${results}" class="card">
-    <div>
-      <b th:text="${row.restaurantName}"></b>
-      <span> - </span>
-      <span th:text="${row.city}"></span>
-      <span th:if="${row.cuisineType != null}"> | </span>
-      <span th:text="${row.cuisineType}"></span>
+        <div th:each="row, st : ${results}">
+
+            <!-- Restaurant header: only when first row OR restaurant changes -->
+            <div class="card"
+                 th:if="${st.index == 0
+                         or results[st.index-1].restaurantId != row.restaurantId}"
+                 style="margin-top:12px;">
+
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    <b th:text="${row.restaurantName}">Restaurant</b>
+                    <span>•</span>
+                    <span th:text="${row.city}">city</span>
+                    <span th:if="${row.cuisineType != null}"> | </span>
+                    <span th:if="${row.cuisineType != null}" th:text="${row.cuisineType}">cuisine</span>
+
+                    <span style="margin-left:auto; display:flex; gap:8px;">
+                        <a class="btn" th:href="@{/restaurant/{id}(id=${row.restaurantId})}">Details</a>
+                        <a class="btn" th:href="@{/restaurants/{id}/ratings(id=${row.restaurantId})}">Ratings</a>
+                    </span>
+                </div>
+
+                <!-- Items for THIS restaurant -->
+                <div style="margin-top:10px;">
+                    <div th:each="it : ${results}" th:if="${it.restaurantId == row.restaurantId}"
+                         style="border-top:1px solid #eee; padding-top:10px; margin-top:10px;">
+
+                        <div>
+                            <div><b th:text="${it.menuItemName}">MenuItem</b></div>
+                            <div th:text="${it.description}">desc</div>
+
+                            <!-- Price block -->
+                            <div style="margin-top:6px;">
+                                <span th:if="${it.discountedPrice != null}">
+                                    <span style="text-decoration:line-through; opacity:0.7;">
+                                        <b th:text="${it.price}">0</b> TL
+                                    </span>
+                                    <span> → </span>
+                                    <b th:text="${it.discountedPrice}">0</b> TL
+                                    <span th:if="${it.discountPercent != null}">
+                                        (<span th:text="${it.discountPercent}">0</span>% off)
+                                    </span>
+                                </span>
+
+                                <span th:if="${it.discountedPrice == null}">
+                                    <b th:text="${it.price}">0</b> TL
+                                </span>
+                            </div>
+
+                            <!-- Add to cart -->
+                            <div style="margin-top:10px;">
+                                <form method="post" th:action="@{/cart/add}">
+                                    <!-- CSRF (safe) -->
+                                    <input type="hidden"
+                                           th:if="${_csrf != null}"
+                                           th:name="${_csrf.parameterName}"
+                                           th:value="${_csrf.token}" />
+
+                                    <input type="hidden" name="menuItemId" th:value="${it.menuItemId}">
+                                    <input type="number" name="quantity" min="1" value="1" style="width:80px;">
+                                    <button class="btn btn-primary" type="submit">Add to Cart</button>
+                                </form>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
     </div>
-
-    <div style="margin-top:6px;">
-      <div><b th:text="${row.menuItemName}"></b></div>
-      <div th:text="${row.description}"></div>
-      <div><b th:text="${row.price}"></b> TL</div>
-    </div>
-  </div>
 </div>
 
 </body>
