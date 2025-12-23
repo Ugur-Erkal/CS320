@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class OrderRatingController {
@@ -19,20 +20,29 @@ public class OrderRatingController {
     public String rateOrder(@RequestParam int cartId,
                             @RequestParam int rating,
                             @RequestParam(required = false) String comment,
-                            HttpSession session) {
+                            HttpSession session,
+                            RedirectAttributes ra) {
 
         Object uidObj = session.getAttribute("userId");
         if (uidObj == null) return "redirect:/login";
 
         int userId = (uidObj instanceof Integer) ? (Integer) uidObj : ((Number) uidObj).intValue();
 
-        // Basic validation
         if (rating < 1 || rating > 5) {
-            // fallback: just go back
+            ra.addFlashAttribute("msg", "Rating must be between 1 and 5.");
             return "redirect:/my-orders";
         }
 
-        ratingService.submitOrderRating(userId, cartId, rating, comment);
+        try {
+            ratingService.submitOrderRating(userId, cartId, rating, comment);
+            ra.addFlashAttribute("msg", "Review submitted.");
+        } catch (IllegalArgumentException ex) {
+            ra.addFlashAttribute("msg", ex.getMessage());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            ra.addFlashAttribute("msg", "Could not submit review.");
+        }
+
         return "redirect:/my-orders";
     }
 }

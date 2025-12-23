@@ -21,23 +21,28 @@ public class OrderHistoryService {
 
     public List<OrderSummary> getOrdersForUser(int userId) {
 
+        // ✅ Her kolon için alias veriyoruz -> rs.getX("alias") ile %100 stabil
         List<OrderSummary> orders = jdbc.query("""
-                SELECT c.CartID, c.`Status`, c.AcceptedAt,
-                       r.RestaurantID, r.RestaurantName
-                FROM `Belongs` b
-                JOIN `Cart` c ON c.CartID = b.CartID
-                JOIN `Holds` h ON h.CartID = c.CartID
-                JOIN `Restaurant` r ON r.RestaurantID = h.RestaurantID
+                SELECT
+                    c.CartID        AS cartId,
+                    c.`Status`      AS status,
+                    c.AcceptedAt    AS acceptedAt,
+                    r.RestaurantID  AS restaurantId,
+                    r.RestaurantName AS restaurantName
+                FROM `belongs` b
+                JOIN `cart` c        ON c.CartID = b.CartID
+                JOIN `holds` h       ON h.CartID = c.CartID
+                JOIN `restaurant` r  ON r.RestaurantID = h.RestaurantID
                 WHERE b.UserID = ?
-                    AND c.Status IN ('sent', 'accepted')
+                  AND c.`Status` IN ('sent', 'accepted')
                 ORDER BY c.CartID DESC
                 """,
                 (rs, rowNum) -> new OrderSummary(
-                        rs.getInt("CartID"),
-                        rs.getString("Status"),
-                        rs.getTimestamp("AcceptedAt"),
-                        rs.getInt("RestaurantID"),
-                        rs.getString("RestaurantName"),
+                        rs.getInt("cartId"),
+                        rs.getString("status"),
+                        rs.getTimestamp("acceptedAt"),
+                        rs.getInt("restaurantId"),
+                        rs.getString("restaurantName"),
                         new ArrayList<>(),
                         BigDecimal.ZERO
                 ),
@@ -46,17 +51,21 @@ public class OrderHistoryService {
 
         for (OrderSummary o : orders) {
             List<OrderItemRow> items = jdbc.query("""
-                    SELECT mi.MenuItemID, mi.Name, mi.Price, ct.Quantity
-                    FROM `Contains` ct
-                    JOIN `MenuItem` mi ON mi.MenuItemID = ct.MenuItemID
+                    SELECT
+                        mi.MenuItemID AS menuItemId,
+                        mi.Name       AS name,
+                        mi.Price      AS price,
+                        ct.Quantity   AS quantity
+                    FROM `contains` ct
+                    JOIN `menuitem` mi ON mi.MenuItemID = ct.MenuItemID
                     WHERE ct.CartID = ?
                     ORDER BY mi.Name ASC
                     """,
                     (rs, rowNum) -> new OrderItemRow(
-                            rs.getInt("MenuItemID"),
-                            rs.getString("Name"),
-                            rs.getBigDecimal("Price"),
-                            rs.getInt("Quantity")
+                            rs.getInt("menuItemId"),
+                            rs.getString("name"),
+                            rs.getBigDecimal("price"),
+                            rs.getInt("quantity")
                     ),
                     o.cartId()
             );
