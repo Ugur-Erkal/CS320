@@ -1,17 +1,14 @@
 package models;
 
-
-
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
-public class payment{
+public class payment {
 
     private int paymentId;
     private int userId;
     private BigDecimal amount;
     private Timestamp paidAt;
-
 
     public payment(int paymentId, int userId, BigDecimal amount, Timestamp paidAt) {
         this.paymentId = paymentId;
@@ -19,7 +16,6 @@ public class payment{
         this.amount = amount;
         this.paidAt = paidAt;
     }
-
 
     public payment(int userId, BigDecimal amount) {
         this.userId = userId;
