@@ -1,35 +1,43 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
       th:replace="~{base :: layout(~{::body})}">
 <body>
 
 <h2>My Orders</h2>
 
-<div th:if="${orders == null || orders.isEmpty()}" class="card">
+<!-- No orders -->
+<div th:if="${orders == null or orders.isEmpty()}" class="card">
     <p>No order history.</p>
     <a class="btn btn-primary" href="/search">Go to Search</a>
 </div>
 
+<!-- Orders -->
 <div th:each="o : ${orders}" class="card">
+
+    <!-- Header -->
     <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-        <strong th:text="${o.restaurantName}">Restaurant Name</strong>
+        <strong th:text="${o.restaurantName}">Restaurant</strong>
 
         <span>&bull;</span>
         <span>
-      Status: <b th:text="${o.status}">sent</b>
-    </span>
+            Status:
+            <b th:text="${o.status}">sent</b>
+        </span>
 
         <span th:if="${o.acceptedAt != null}">
-      <span>&bull;</span>
-      AcceptedAt:
-      <span th:text="${#dates.format(o.acceptedAt, 'yyyy-MM-dd HH:mm')}">date</span>
-    </span>
+            <span>&bull;</span>
+            AcceptedAt:
+            <span th:text="${#dates.format(o.acceptedAt, 'yyyy-MM-dd HH:mm')}">date</span>
+        </span>
 
         <span style="margin-left:auto;">
-      Total: <b th:text="${o.total}">0</b>
-    </span>
+            Total:
+            <b th:text="${o.total}">0</b>
+        </span>
     </div>
 
+    <!-- Items -->
     <div style="margin-top:10px;">
         <table style="width:100%; border-collapse:collapse;">
             <thead>
@@ -42,29 +50,46 @@
             </thead>
             <tbody>
             <tr th:each="it : ${o.items}">
-                <td style="padding:6px;" th:text="${it.name}">Pizza</td>
-                <td style="padding:6px; text-align:right;" th:text="${it.price}">100</td>
-                <td style="padding:6px; text-align:right;" th:text="${it.quantity}">2</td>
-                <td style="padding:6px; text-align:right;" th:text="${it.lineTotal}">200</td>
+                <td style="padding:6px;" th:text="${it.name}">Item</td>
+                <td style="padding:6px; text-align:right;" th:text="${it.price}">0</td>
+                <td style="padding:6px; text-align:right;" th:text="${it.quantity}">1</td>
+                <td style="padding:6px; text-align:right;" th:text="${it.lineTotal}">0</td>
             </tr>
             </tbody>
         </table>
     </div>
 
-    <!-- Rate & Comment (only for accepted orders) -->
-    <div style="margin-top:12px;" th:if="${o.status == 'accepted'}">
-        <form method="post" action="/orders/rate" class="card" style="margin:0;">
-            <input type="hidden" name="cartId" th:value="${o.cartId}"/>
+    <!-- Rate & Comment (only for accepted orders AND not already rated) -->
+    <div style="margin-top:12px;"
+         th:if="${o.status == 'accepted' and (ratedCartIds == null or !ratedCartIds.contains(o.cartId))}">
+
+        <form method="post" th:action="@{/orders/rate}" class="card" style="margin:0;">
+            <!-- CSRF token (safe) -->
+            <input type="hidden"
+                   th:if="${_csrf != null}"
+                   th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}" />
+
+            <input type="hidden" name="cartId" th:value="${o.cartId}" />
 
             <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
                 <div>
-                    <label>Rating (1-5)</label><br/>
-                    <input type="number" name="rating" min="1" max="5" value="5" style="width:90px;">
+                    <label>Rating (1–5)</label><br/>
+                    <input type="number"
+                           name="rating"
+                           min="1"
+                           max="5"
+                           value="5"
+                           required
+                           style="width:90px;">
                 </div>
 
                 <div style="flex:1; min-width:240px;">
                     <label>Comment (optional)</label><br/>
-                    <input type="text" name="comment" placeholder="Write a short review..." style="width:100%;">
+                    <input type="text"
+                           name="comment"
+                           placeholder="Write a short review..."
+                           style="width:100%;">
                 </div>
 
                 <div>
@@ -74,6 +99,47 @@
         </form>
     </div>
 
+    <!-- If already rated -->
+    <div style="margin-top:12px;"
+         th:if="${o.status == 'accepted' and ratedCartIds != null and ratedCartIds.contains(o.cartId)}">
+
+        <p style="margin:0 0 6px 0;"><b>You already reviewed this order.</b></p>
+
+        <!-- cartId tipini normalize et (Integer) + rev'i null-safe al -->
+        <div th:with="cid=${T(java.lang.Integer).valueOf('' + o.cartId)},
+                      rev=${ratingsByCart != null ? ratingsByCart.get(cid) : null}"
+             th:if="${rev != null}"
+             style="border:1px solid #eee; border-radius:8px; padding:10px; background:#fafafa;">
+
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <span>
+                    Your rating:
+                    <b th:text="${rev.get('rating')}">5</b>/5
+                </span>
+
+                <span th:if="${rev.get('ratingDate') != null}">
+                    <span>&bull;</span>
+                    <span th:text="${rev.get('ratingDate')}">date</span>
+                </span>
+            </div>
+
+            <div style="margin-top:6px;" th:if="${rev.get('comment') != null}">
+                <i th:text="${rev.get('comment')}">comment</i>
+            </div>
+
+            <div style="margin-top:6px;" th:if="${rev.get('comment') == null}">
+                <i>No comment.</i>
+            </div>
+        </div>
+
+        <!-- rev yoksa bilgi ver (patlamasın) -->
+        <div th:with="cid=${T(java.lang.Integer).valueOf('' + o.cartId)}"
+             th:if="${ratingsByCart == null or ratingsByCart.get(cid) == null}">
+            <i>(Review details not available.)</i>
+        </div>
+    </div>
+
+    <!-- Sent info -->
     <div style="margin-top:12px;" th:if="${o.status == 'sent'}">
         <p style="margin:0;">Waiting for manager acceptance…</p>
     </div>

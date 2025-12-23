@@ -60,8 +60,9 @@ public class AuthController {
             return "redirect:/dashboard";
         }
 
-        return "redirect:search";
+        return "redirect:/search"; // <-- BURASI ÖNEMLİ
     }
+
 
 
     @PostMapping("/register")

@@ -3,10 +3,14 @@ package com.cs320.service;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class RatingService {
@@ -26,10 +30,10 @@ public class RatingService {
                   r.Comment,
                   r.RatingDate,
                   u.Username
-                FROM Ratings r
-                JOIN ForRestaurant fr ON fr.RatingID = r.RatingID
-                JOIN WrittenBy wb ON wb.RatingID = r.RatingID
-                JOIN User u ON u.UserID = wb.UserID
+                FROM `ratings` r
+                JOIN `forrestaurant` fr ON fr.RatingID = r.RatingID
+                JOIN `writtenby` wb ON wb.RatingID = r.RatingID
+                JOIN `user` u ON u.UserID = wb.UserID
                 WHERE fr.RestaurantID = ?
                 ORDER BY r.RatingDate DESC
                 """,
@@ -42,8 +46,8 @@ public class RatingService {
         return jdbc.queryForObject(
                 """
                 SELECT AVG(r.Rating)
-                FROM Ratings r
-                JOIN ForRestaurant fr ON fr.RatingID = r.RatingID
+                FROM `ratings` r
+                JOIN `forrestaurant` fr ON fr.RatingID = r.RatingID
                 WHERE fr.RestaurantID = ?
                 """,
                 Double.class,
@@ -52,21 +56,29 @@ public class RatingService {
     }
 
     // Yeni rating ekle (restaurant sayfasından)
+    @Transactional
     public void addRating(int restaurantId, int userId, int rating, String comment) {
+
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        String cleanComment = (comment == null || comment.isBlank()) ? null : comment.trim();
+
         jdbc.update(
                 """
-                INSERT INTO Ratings (Rating, RatingDate, Comment)
+                INSERT INTO `ratings` (Rating, RatingDate, Comment)
                 VALUES (?, ?, ?)
                 """,
                 rating,
-                LocalDateTime.now(),
-                comment
+                now,
+                cleanComment
         );
 
         Integer ratingId = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Integer.class);
+        if (ratingId == null) {
+            throw new IllegalStateException("Could not create rating.");
+        }
 
-        jdbc.update("INSERT INTO WrittenBy (RatingID, UserID) VALUES (?, ?)", ratingId, userId);
-        jdbc.update("INSERT INTO ForRestaurant (RatingID, RestaurantID) VALUES (?, ?)", ratingId, restaurantId);
+        jdbc.update("INSERT INTO `writtenby` (RatingID, UserID) VALUES (?, ?)", ratingId, userId);
+        jdbc.update("INSERT INTO `forrestaurant` (RatingID, RestaurantID) VALUES (?, ?)", ratingId, restaurantId);
     }
 
     // -------------------------
@@ -75,7 +87,7 @@ public class RatingService {
 
     public boolean hasRatingForCart(int cartId) {
         Integer cnt = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM Ratings WHERE CartID = ?",
+                "SELECT COUNT(*) FROM `ratings` WHERE CartID = ?",
                 Integer.class,
                 cartId
         );
@@ -86,20 +98,21 @@ public class RatingService {
      * Only allowed for:
      * - carts that belong to user
      * - carts with Status = 'accepted'
-     * - carts not already rated (CartID UNIQUE in Ratings)
+     * - carts not already rated (CartID UNIQUE in ratings)
      */
+    @Transactional
     public void submitOrderRating(int userId, int cartId, int rating, String comment) {
 
-        // 0) Verify ownership + accepted + get restaurantId
+        // Ownership + accepted + restaurantId
         Integer restaurantId = jdbc.queryForObject(
                 """
                 SELECT h.RestaurantID
-                FROM Belongs b
-                JOIN Cart c ON c.CartID = b.CartID
-                JOIN Holds h ON h.CartID = c.CartID
+                FROM `belongs` b
+                JOIN `cart` c  ON c.CartID = b.CartID
+                JOIN `holds` h ON h.CartID = c.CartID
                 WHERE b.UserID = ?
                   AND c.CartID = ?
-                  AND c.Status = 'accepted'
+                  AND c.`Status` = 'accepted'
                 LIMIT 1
                 """,
                 Integer.class,
@@ -107,31 +120,82 @@ public class RatingService {
         );
 
         if (restaurantId == null) {
-            throw new IllegalStateException("You can only rate accepted orders that belong to you.");
+            throw new IllegalArgumentException("You can only rate accepted orders that belong to you.");
         }
 
+        // User-friendly pre-check
+        if (hasRatingForCart(cartId)) {
+            throw new IllegalArgumentException("This order has already been rated.");
+        }
+
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        String cleanComment = (comment == null || comment.isBlank()) ? null : comment.trim();
+
         try {
-            // 1) Insert into Ratings with CartID (unique)
             jdbc.update(
                     """
-                    INSERT INTO Ratings (Rating, RatingDate, Comment, CartID)
+                    INSERT INTO `ratings` (Rating, RatingDate, Comment, CartID)
                     VALUES (?, ?, ?, ?)
                     """,
-                    rating,
-                    LocalDateTime.now(),
-                    (comment == null || comment.isBlank()) ? null : comment.trim(),
-                    cartId
+                    rating, now, cleanComment, cartId
             );
         } catch (DuplicateKeyException ex) {
-            throw new IllegalStateException("This order has already been rated.");
+            throw new IllegalArgumentException("This order has already been rated.");
         }
 
         Integer ratingId = jdbc.queryForObject("SELECT LAST_INSERT_ID()", Integer.class);
+        if (ratingId == null) {
+            throw new IllegalStateException("Could not create rating.");
+        }
 
-        // 2) WrittenBy
-        jdbc.update("INSERT INTO WrittenBy (RatingID, UserID) VALUES (?, ?)", ratingId, userId);
-
-        // 3) ForRestaurant
-        jdbc.update("INSERT INTO ForRestaurant (RatingID, RestaurantID) VALUES (?, ?)", ratingId, restaurantId);
+        jdbc.update("INSERT INTO `writtenby` (RatingID, UserID) VALUES (?, ?)", ratingId, userId);
+        jdbc.update("INSERT INTO `forrestaurant` (RatingID, RestaurantID) VALUES (?, ?)", ratingId, restaurantId);
     }
+
+    // ✅ Yeni: My Orders sayfasında formu saklamak için
+    public Set<Integer> getRatedCartIdsForUser(int userId) {
+        List<Integer> ids = jdbc.query(
+                """
+                SELECT r.CartID
+                FROM `ratings` r
+                JOIN `belongs` b ON b.CartID = r.CartID
+                WHERE b.UserID = ?
+                  AND r.CartID IS NOT NULL
+                """,
+                (rs, rowNum) -> rs.getInt("CartID"),
+                userId
+        );
+        return new HashSet<>(ids);
+    }
+
+    // ✅ Yeni: Kullanıcının cart bazlı review bilgisini göstermek için
+    // cartId -> row(rating, comment, ratingDate, cartId)
+    public Map<Integer, Map<String, Object>> getRatingsByCartForUser(int userId) {
+
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                """
+                SELECT
+                    r.CartID     AS cartId,
+                    r.Rating     AS rating,
+                    r.Comment    AS comment,
+                    r.RatingDate AS ratingDate
+                FROM `ratings` r
+                JOIN `belongs` b ON b.CartID = r.CartID
+                WHERE b.UserID = ?
+                  AND r.CartID IS NOT NULL
+                ORDER BY r.RatingDate DESC
+                """,
+                userId
+        );
+
+        Map<Integer, Map<String, Object>> map = new HashMap<>();
+        for (Map<String, Object> row : rows) {
+            Object cid = row.get("cartId");
+            if (cid instanceof Number) {
+                map.put(((Number) cid).intValue(), row);
+            }
+        }
+        return map;
+    }
+
 }
