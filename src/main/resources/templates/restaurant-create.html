@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{base :: layout(~{::body})}">
+<body>
+
+<h2>Create Restaurant</h2>
+
+<div class="card">
+    <form method="post" th:action="@{/manager/restaurants}">
+        <input type="hidden" th:if="${_csrf != null}"
+               th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:260px;">
+                <label>Restaurant Name</label><br/>
+                <input name="restaurantName" required style="width:100%;"/>
+            </div>
+
+            <div style="flex:1; min-width:260px;">
+                <label>City</label><br/>
+                <input name="city" required style="width:100%;"/>
+            </div>
+        </div>
+
+        <div style="margin-top:12px;">
+            <label>Address</label><br/>
+            <input name="address" required style="width:100%;"/>
+        </div>
+
+        <div style="margin-top:12px;">
+            <label>Cuisine Type (optional)</label><br/>
+            <input name="cuisineType" style="width:100%;"/>
+        </div>
+
+        <div style="margin-top:14px; display:flex; gap:10px;">
+            <button class="btn btn-primary" type="submit">Create</button>
+            <a class="btn" href="/dashboard">Cancel</a>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

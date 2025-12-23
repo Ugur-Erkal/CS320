@@ -5,6 +5,14 @@
 
 <h2>Restaurant Dashboard</h2>
 
+<div class="card">
+    <a class="btn btn-primary" href="/manager/restaurants/new">Create Restaurant</a>
+</div>
+
+<div th:if="${msg != null}" class="card">
+    <p th:text="${msg}">Message</p>
+</div>
+
 <div th:if="${restaurants == null or #lists.isEmpty(restaurants)}" class="card">
     <p>No restaurant is assigned to your manager account.</p>
     <a class="btn" href="/logout">Logout</a>
@@ -27,7 +35,12 @@
 
             <span style="flex:1"></span>
 
-            <!-- NEW: Discounts button (only if a restaurant is selected) -->
+            <a class="btn"
+               th:if="${selectedRestaurantId != null}"
+               th:href="@{/manager/restaurants/{id}(id=${selectedRestaurantId})}">
+                Manage Menu/Keywords
+            </a>
+
             <a class="btn"
                th:if="${selectedRestaurantId != null}"
                th:href="@{/manager/discounts(restaurantId=${selectedRestaurantId})}">
@@ -69,6 +82,8 @@
                     <form th:if="${o.status != null and o.status.toString().equalsIgnoreCase('sent')}"
                           method="post"
                           th:action="@{/accept-order/{id}(id=${o.cartId})}">
+                        <input type="hidden" th:if="${_csrf != null}"
+                               th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                         <input type="hidden" name="restaurantId" th:value="${selectedRestaurantId}">
                         <button class="btn btn-primary" type="submit">Accept</button>
                     </form>
