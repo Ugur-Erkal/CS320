@@ -48,7 +48,7 @@ public class RatingsDAO {
         }
     }
 
-    // CartID UNIQUE olduğu için tek kayıt döner
+
     public Ratings findByCartId(int cartId) throws SQLException {
         String sql = "SELECT RatingID, Rating, RatingDate, Comment, CartID FROM " + RAT_TABLE + " WHERE CartID = ?";
 
@@ -101,6 +101,27 @@ public class RatingsDAO {
             ps.executeUpdate();
         }
     }
+    public List<Ratings> findByRestaurantAndMinRating(int restaurantId, int minRating) throws SQLException {
+        List<Ratings> list = new ArrayList<>();
+
+        String sql = "SELECT r.RatingID, r.Rating, r.RatingDate, r.Comment, r.CartID " +
+                "FROM Ratings r " +
+                "JOIN Holds h ON r.CartID = h.CartID " +
+                "WHERE h.RestaurantID = ? AND r.Rating >= ? " +
+                "ORDER BY r.RatingDate DESC";
+
+        try (Connection c = DataSource.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setInt(1, restaurantId);
+            ps.setInt(2, minRating);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapRow(rs));
+            }
+        }
+        return list;
+    }
 
     private Ratings mapRow(ResultSet rs) throws SQLException {
         return new Ratings(
@@ -111,6 +132,5 @@ public class RatingsDAO {
                 rs.getInt("CartID")
         );
     }
+
 }
-
-
