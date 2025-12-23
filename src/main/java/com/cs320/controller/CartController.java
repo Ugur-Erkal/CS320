@@ -4,9 +4,7 @@ import com.cs320.service.CartService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 public class CartController {
@@ -29,8 +27,8 @@ public class CartController {
         if (userId == null) return "redirect:/login";
 
         model.addAttribute("pageTitle", "Cart");
-        model.addAttribute("items", cartService.getCartItems(userId));
-        model.addAttribute("total", cartService.getCartTotal(userId));
+        model.addAttribute("items", cartService.getActiveCartItems(userId));
+        model.addAttribute("total", cartService.getActiveCartTotal(userId));
         return "cart";
     }
 
@@ -41,35 +39,36 @@ public class CartController {
         Integer userId = getUserId(session);
         if (userId == null) return "redirect:/login";
 
-        if (quantity <= 0) quantity = 1;
-
         cartService.addToCart(userId, menuItemId, quantity);
         return "redirect:/cart";
     }
 
     @PostMapping("/cart/remove")
-    public String removeFromCart(@RequestParam("menuItemId") int menuItemId,
+    public String removeFromCart(@RequestParam("cartId") int cartId,
+                                 @RequestParam("menuItemId") int menuItemId,
                                  HttpSession session) {
         Integer userId = getUserId(session);
         if (userId == null) return "redirect:/login";
 
-        cartService.removeFromCart(userId, menuItemId);
+        cartService.removeFromCart(userId, cartId, menuItemId);
         return "redirect:/cart";
     }
 
     @PostMapping("/cart/checkout")
-    public String checkout(HttpSession session, Model model) {
+    public String checkout(@RequestParam("cartId") int cartId,
+                           HttpSession session,
+                           Model model) {
         Integer userId = getUserId(session);
         if (userId == null) return "redirect:/login";
 
         try {
-            cartService.checkout(userId);
+            cartService.checkoutCart(userId, cartId);
             return "redirect:/my-orders";
         } catch (Exception e) {
             model.addAttribute("pageTitle", "Cart");
             model.addAttribute("error", e.getMessage());
-            model.addAttribute("items", cartService.getCartItems(userId));
-            model.addAttribute("total", cartService.getCartTotal(userId));
+            model.addAttribute("items", cartService.getActiveCartItems(userId));
+            model.addAttribute("total", cartService.getActiveCartTotal(userId));
             return "cart";
         }
     }

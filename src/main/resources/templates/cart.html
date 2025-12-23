@@ -14,64 +14,80 @@
 </div>
 
 <!-- Non-empty -->
-<div class="card" th:if="${items != null and !#lists.isEmpty(items)}">
-    <h3>Items</h3>
+<div th:if="${items != null and !#lists.isEmpty(items)}">
 
-    <table style="width:100%; border-collapse:collapse;">
-        <thead>
-        <tr>
-            <th style="text-align:left; padding:6px 4px;">Item</th>
-            <th style="text-align:right; padding:6px 4px;">Unit Price</th>
-            <th style="text-align:right; padding:6px 4px;">Qty</th>
-            <th style="text-align:right; padding:6px 4px;">Subtotal</th>
-            <th style="text-align:right; padding:6px 4px;">Actions</th>
-        </tr>
-        </thead>
+    <!-- group by cartId: Thymeleaf'de en stabil yöntem: cart değişimini yakalayıp başlık açmak -->
+    <div th:each="it, st : ${items}">
 
-        <tbody>
-        <tr th:each="it : ${items}">
-            <td style="padding:6px 4px;">
-                <b th:text="${it.menuItemName}"></b>
-                <div style="font-size:0.9em; color:#666;" th:text="${it.restaurantName}"></div>
-            </td>
+        <!-- NEW group header when cart changes -->
+        <div th:if="${st.index == 0 or items[st.index-1].cartId != it.cartId}" class="card" style="margin-top:12px;">
 
-            <td style="padding:6px 4px; text-align:right;">
-                <span th:text="${it.price}"></span> TL
-            </td>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <h3 style="margin:0;" th:text="${it.restaurantName}">Restaurant</h3>
+                <span style="opacity:0.7;">(Cart #<span th:text="${it.cartId}">1</span>)</span>
 
-            <td style="padding:6px 4px; text-align:right;">
-                <span th:text="${it.quantity}"></span>
-            </td>
+                <span style="flex:1;"></span>
 
-            <td style="padding:6px 4px; text-align:right;">
-                <span th:text="${it.subtotal}"></span> TL
-            </td>
-
-            <td style="padding:6px 4px; text-align:right;">
-                <form method="post" action="/cart/remove" style="display:inline;">
-                    <input type="hidden" name="menuItemId" th:value="${it.menuItemId}">
-                    <button class="btn" type="submit">Remove</button>
-                </form>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-
-    <div style="margin-top:14px; display:flex; justify-content:flex-end;">
-        <div style="text-align:right;">
-            <div><b>Total:</b> <span th:text="${total}"></span> TL</div>
-
-            <div style="margin-top:10px;">
-                <form method="post" action="/cart/checkout" style="display:inline;">
+                <!-- Checkout this cart -->
+                <form method="post" action="/cart/checkout" style="margin:0;">
+                    <input type="hidden" name="cartId" th:value="${it.cartId}">
                     <button class="btn btn-primary" type="submit">Checkout / Place Order</button>
                 </form>
             </div>
-        </div>
-    </div>
-</div>
 
-<div style="margin-top:16px;">
-    <a href="/search">← Continue shopping</a>
+            <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+                <thead>
+                <tr>
+                    <th style="text-align:left; padding:6px 4px;">Item</th>
+                    <th style="text-align:right; padding:6px 4px;">Unit Price</th>
+                    <th style="text-align:right; padding:6px 4px;">Qty</th>
+                    <th style="text-align:right; padding:6px 4px;">Subtotal</th>
+                    <th style="text-align:right; padding:6px 4px;">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                <!-- rows for this cartId -->
+                <tr th:each="row : ${items}" th:if="${row.cartId == it.cartId}">
+                    <td style="padding:6px 4px;">
+                        <b th:text="${row.menuItemName}">Item</b>
+                    </td>
+
+                    <td style="padding:6px 4px; text-align:right;">
+                        <span th:text="${row.price}">0</span> TL
+                    </td>
+
+                    <td style="padding:6px 4px; text-align:right;">
+                        <span th:text="${row.quantity}">1</span>
+                    </td>
+
+                    <td style="padding:6px 4px; text-align:right;">
+                        <span th:text="${row.subtotal}">0</span> TL
+                    </td>
+
+                    <td style="padding:6px 4px; text-align:right;">
+                        <form method="post" action="/cart/remove" style="display:inline;">
+                            <input type="hidden" name="cartId" th:value="${row.cartId}">
+                            <input type="hidden" name="menuItemId" th:value="${row.menuItemId}">
+                            <button class="btn" type="submit">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+        <b>All carts total:</b> <span th:text="${total}">0</span> TL
+    </div>
+
+    <div style="margin-top:16px;">
+        <a href="/search">← Continue shopping</a>
+    </div>
+
 </div>
 
 </body>
