@@ -83,9 +83,8 @@
             <td style="padding:6px; text-align:right;">
                 <span th:text="${d.discountPercent}">10</span>%
             </td>
-            <td style="padding:6px;" th:text="${#dates.format(d.startDate, 'yyyy-MM-dd HH:mm')}">start</td>
-            <td style="padding:6px;" th:text="${#dates.format(d.endDate, 'yyyy-MM-dd HH:mm')}">end</td>
-        </tr>
+            <td th:text="${#temporals.format(d.startDate, 'yyyy-MM-dd HH:mm')}">start</td>
+            <td th:text="${#temporals.format(d.endDate, 'yyyy-MM-dd HH:mm')}">end</td>
         </tbody>
     </table>
 </div>
